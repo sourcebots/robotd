@@ -1,3 +1,5 @@
+"""Master process which detects hardware and launches controllers."""
+
 import collections
 import json
 import multiprocessing
@@ -13,7 +15,10 @@ from robotd.devices import BOARDS
 
 
 class BoardRunner(multiprocessing.Process):
+    """Control process for one board."""
+
     def __init__(self, board, **kwargs):
+        """Constructor from a given `Board`."""
         super().__init__(**kwargs)
         self.board = board
         self.socket_path = Path("/var/robotd/{}/{}".format(
@@ -29,6 +34,16 @@ class BoardRunner(multiprocessing.Process):
         print(self.socket_path)
 
     def run(self):
+        """
+        Control this board.
+
+        This is the entry point from the control subprocess and its job is to:
+
+        * Create and manage the UNIX socket in `/var/robotd`,
+        * Pass on commands to the `board`,
+        * Call `make_safe` whenever the last user disconnects,
+        * Deal with error handling and shutdown.
+        """
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
         sock.bind(str(self.socket_path))
         sock.listen(5)
@@ -120,6 +135,11 @@ class BoardRunner(multiprocessing.Process):
                 self.board.make_safe()
 
     def cleanup_socket(self):
+        """
+        Clean up the UNIX socket if it's been left around.
+
+        Called from the parent process.
+        """
         try:
             self.socket_path.unlink()
         except FileNotFoundError:
@@ -127,16 +147,21 @@ class BoardRunner(multiprocessing.Process):
 
 
 class MasterProcess(object):
+    """The mighty God object which manages the controllers."""
+
     def __init__(self):
+        """Standard constructor."""
         self.runners = collections.defaultdict(dict)
         self.context = pyudev.Context()
 
     def tick(self):
+        """Poll udev for any new or missing boards."""
         for board_type in BOARDS:
             nodes = self.context.list_devices(**board_type.lookup_keys)
             self._process_device_list(board_type, nodes)
 
     def cleanup(self):
+        """Shut down all the controllers."""
         for board_type in BOARDS:
             self._process_device_list(board_type, [])
 
@@ -172,6 +197,7 @@ class MasterProcess(object):
 
 
 def main():
+    """Main entry point."""
     master = MasterProcess()
 
     setproctitle.setproctitle("robotd master")
