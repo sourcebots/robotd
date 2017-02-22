@@ -34,6 +34,8 @@ class BoardRunner(multiprocessing.Process):
         sock.bind(str(self.socket_path))
         sock.listen(5)
 
+        self.socket_path.chmod(0o777)
+
         setproctitle.setproctitle("robotd {}: {}".format(
             type(self.board).board_type_id,
             type(self.board).name(self.board.node),
