@@ -1,8 +1,14 @@
 #!/bin/bash
 set -e
 
+mkdir -p /var/robotd
+adduser --system \
+        --home /var/robotd \
+        --quiet \
+        --group \
+        robotd
+chown robotd:robotd /var/robotd
+
 #DEBHELPER#
 
-adduser --system robotd
-mkdir -p /var/robotd
-chown robotd:robotd /var/robotd
+exit 0
