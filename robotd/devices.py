@@ -61,6 +61,8 @@ class BrainTemperatureSensor(Board):
         'subsystem': 'thermal',
     }
 
+    enabled = False
+
     @classmethod
     def name(cls, node):
         return node.sys_name
