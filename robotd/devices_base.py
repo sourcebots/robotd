@@ -6,7 +6,7 @@ class BoardMeta(type):
 
     def __new__(cls, name, bases, dict):
         cls = type.__new__(cls, name, bases, dict)
-        if hasattr(cls, 'lookup_keys'):
+        if hasattr(cls, 'lookup_keys') and cls.enabled:
             BoardMeta.BOARDS.append(cls)
         return cls
 
@@ -25,6 +25,8 @@ class BoardMeta(type):
 
 
 class Board(metaclass=BoardMeta):
+    enabled = True
+
     @classmethod
     def name(cls, node):
         return node.sys_name
