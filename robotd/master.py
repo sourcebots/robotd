@@ -1,11 +1,10 @@
-from pathlib import Path
-
 import collections
 import json
 import multiprocessing
 import select
 import socket
 import time
+from pathlib import Path
 
 import pyudev
 import setproctitle
