@@ -15,3 +15,5 @@ Depends: ${misc:Depends},
          python3-serial,
          python3-setproctitle,
 Description: Robot control daemon
+ Vends UNIX sockets in /var/robotd for communicating with the various
+ robotic peripherals.
