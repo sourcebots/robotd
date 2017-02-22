@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+#DEBHELPER#
+
+adduser --system robotd
+mkdir -p /var/robotd
+chown robotd:robotd /var/robotd

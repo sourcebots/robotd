@@ -1,0 +1,16 @@
+Source: robotd
+Section: electronics
+Priority: optional
+Maintainer: Alistair Lynn <arplynn@gmail.com>
+Build-Depends: debhelper (>= 9),
+               dh-systemd,
+Standards-Version: 3.9.6
+
+Package: robotd
+Architecture: all
+Depends: ${misc:Depends},
+         python3,
+         python3-pyudev,
+         python3-serial,
+         python3-setproctitle,
+Description: Robot control daemon

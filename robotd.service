@@ -1,0 +1,10 @@
+[Unit]
+Description=Provide access to robot peripherals
+
+[Service]
+WorkingDirectory=/usr/share/robotd
+User=robotd
+ExecStart=python3 -m robotd.master
+
+[Install]
+WantedBy=multi-user.target
