@@ -123,7 +123,7 @@ class BoardRunner(multiprocessing.Process):
     def cleanup_socket(self):
         try:
             self.socket_path.unlink()
-        except FileNotFoundException:
+        except FileNotFoundError:
             pass
 
 
