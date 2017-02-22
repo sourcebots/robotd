@@ -5,6 +5,9 @@ Description=Provide access to robot peripherals
 WorkingDirectory=/usr/share/robotd
 User=robotd
 ExecStart=/usr/bin/python3 -m robotd.master
+KillMode=mixed
+KillSignal=SIGINT
+TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target
