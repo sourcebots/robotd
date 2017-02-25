@@ -4,7 +4,7 @@ Description=Provide access to robot peripherals
 [Service]
 WorkingDirectory=/usr/share/robotd
 User=robotd
-ExecStart=/usr/bin/python3 -m robotd.master
+ExecStart=/usr/bin/python3 -u -m robotd.master
 KillMode=mixed
 KillSignal=SIGINT
 TimeoutStopSec=5
