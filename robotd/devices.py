@@ -32,7 +32,7 @@ class MotorBoard(Board):
         This is called after control connections have died.
         """
         # Brake both the motors
-        self.connection.write(b'\x00\x01\x02\x02\x02')
+        self.connection.write(b'\x00\x02\x02\x03\x02')
         self._status = {'left': 'brake', 'right': 'brake'}
 
     def status(self):
