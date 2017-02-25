@@ -51,22 +51,11 @@ class MotorBoard(Board):
 
     def command(self, cmd):
         """Run user-provided command."""
-        tx_buffer = bytearray()
-
-        if 'left' in cmd:
-            tx_buffer.append(2)
-            tx_buffer.append(self._speed_byte(cmd['left']))
-
-        if 'right' in cmd:
-            tx_buffer.append(2)
-            tx_buffer.append(self._speed_byte(cmd['right']))
-
         self._status.update(cmd)
-
-        if not tx_buffer:
-            return
-
-        self.connection.write(tx_buffer)
+        self.connection.write(bytes([
+            2, self._speed_byte(self._status['left']),
+            3, self._speed_byte(self._status['right']),
+        ]))
 
 
 class BrainTemperatureSensor(Board):
