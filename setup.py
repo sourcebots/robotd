@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 setup(name='Robot Daemon',
@@ -8,8 +8,8 @@ setup(name='Robot Daemon',
       description='Daemon for vision code for Source Bots',
       author='SourceBots',
       author_email='',
-      packages=['robotd'],
+      packages=find_packages(),
       setup_requires=["cffi>=0.8.6"],
       ffi_modules=["robotd/vision/apriltag/apriltag_build.py:ffibuilder"],
-      install_requires=['pyudev', 'pyserial', 'pygame', 'Pillow', "cffi>=1.0.0", 'numpy'],
+      install_requires=['pyudev', 'pyserial', 'pygame', 'Pillow', "cffi>=0.8.6", 'numpy', 'setproctitle'],
      )
