@@ -4,10 +4,14 @@ Priority: optional
 Maintainer: Alistair Lynn <arplynn@gmail.com>
 Build-Depends: debhelper (>= 9),
                dh-systemd,
+               dh-python,
+               python3,
+               python3-setuptools,
+               python3-cffi,
 Standards-Version: 3.9.6
 
 Package: robotd
-Architecture: all
+Architecture: any
 Depends: ${misc:Depends},
          adduser,
          python3,
