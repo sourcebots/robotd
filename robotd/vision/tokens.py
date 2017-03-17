@@ -1,5 +1,5 @@
 import code
-from visiond.apriltag._apriltag import ffi
+from robotd.vision.apriltag._apriltag import ffi
 import numpy as np
 import math
 

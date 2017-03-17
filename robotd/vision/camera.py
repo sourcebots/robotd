@@ -1,11 +1,8 @@
 import pygame.camera
 from PIL import Image
 
-from visiond.camera_base import CameraBase
+from robotd.vision.camera_base import CameraBase
 
-
-class CameraError(Exception):
-    pass
 
 
 class Camera(CameraBase):
@@ -31,7 +28,7 @@ class Camera(CameraBase):
             self.cam_image_size = self.camera.get_size()
         except SystemError as e:
             # Rethrow with extra info
-            raise CameraError("Error connecting to camera", e)
+            raise RuntimeError("Error connecting to camera", e)
 
         self._cam_surface = pygame.Surface(self.cam_image_size)
 

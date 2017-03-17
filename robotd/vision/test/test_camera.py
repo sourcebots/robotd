@@ -1,6 +1,6 @@
 import unittest
 
-from visiond.camera import Camera, CameraError
+from robotd.vision.camera import Camera, CameraError
 
 
 class CameraTestCase(unittest.TestCase):

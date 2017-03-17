@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw
 import numpy as np
 from PIL import ImageFont
 
-from visiond.tokens import Token
+from robotd.vision.tokens import Token
 
 
 def _draw_centered(pos, text, font, color, dr):

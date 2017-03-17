@@ -1,4 +1,3 @@
-
 class CameraBase:
     def __init__(self):
         self.initialised = False
@@ -10,12 +9,12 @@ class CameraBase:
 
     def get_image_size(self):
         if not self.initialised:
-            raise Exception("Must Initialise camera before getting image size")
+            raise RuntimeError("Must Initialise camera before getting image size")
         return self.cam_image_size
 
     def capture_image(self):
         """
         :return: PIL Image captured
         """
-        pass
+        raise NotImplementedError()
 

@@ -1,5 +1,5 @@
-from visiond.vision import Vision
-from visiond.camera import FileCamera
+from robotd.vision.vision import Vision
+from robotd.vision.camera import FileCamera
 
 import unittest
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env/ python3
+#!/usr/bin/env python3
 from cffi import FFI
 import glob
 from pathlib import Path
@@ -6,8 +6,7 @@ from pathlib import Path
 ffi = FFI()
 
 
-p = Path("..")
-source_files = p.glob("contrib/april/**/*.c")
+source_files = Path("..").glob("contrib/april/**/*.c")
 
 with open('apriltag_interface.c', 'r') as apriltag_interface:
     ffi.set_source("_apriltag",
