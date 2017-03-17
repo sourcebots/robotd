@@ -10,11 +10,17 @@ base = Path(__file__).parent
 source_files = base.glob("contrib/april/**/*.c")
 
 with (base / 'apriltag_interface.c').open('r') as apriltag_interface:
-    ffi.set_source("_apriltag",
-                   apriltag_interface.read(),
-                   include_dirs=["../contrib/april", "../contrib/april/common"],
-                   sources=source_files
-                   )
+    ffi.set_source(
+        "_apriltag",
+        apriltag_interface.read(),
+        include_dirs=[
+            str(base),
+            str(base / 'contrib' / 'april'),
+            str(base / 'contrib' / 'april' / 'common'),
+        ],
+        sources=[str(x) for x in source_files],
+        extra_compile_args=['-std=c11'],
+    )
 
 # Define the functions to be used.
 
