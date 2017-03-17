@@ -45,6 +45,7 @@ class Camera(CameraBase):
         img_bytes = pygame.image.tostring(self._cam_surface, "RGB", False)
         img = Image.frombytes('RGB', self.cam_image_size, img_bytes)
         img = img.convert('L')
+        img = img.rotate(180)
         return img
 
     # TODO: Remove lens distortions
