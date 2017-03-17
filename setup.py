@@ -11,7 +11,7 @@ setup(
     author_email='',
     packages=find_packages(),
     setup_requires=[
-        'cffi>=0.8.6',
+        'cffi>=1.4.0',
     ],
     ffi_modules=[
         'robotd/vision/apriltag/apriltag_build.py:ffibuilder',
@@ -22,8 +22,9 @@ setup(
         'pyserial',
         'pygame',
         'Pillow',
-        "cffi>=0.8.6",
+        "cffi>=1.4.0",
         'numpy',
         'setproctitle',
     ],
+    zip_safe=False,
 )
