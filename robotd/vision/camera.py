@@ -28,7 +28,7 @@ class Camera(CameraBase):
             self.cam_image_size = self.camera.get_size()
         except SystemError as e:
             # Rethrow with extra info
-            raise RuntimeError("Error connecting to camera", e)
+            raise RuntimeError("Error connecting to camera") from e
 
         self._cam_surface = pygame.Surface(self.cam_image_size)
 
