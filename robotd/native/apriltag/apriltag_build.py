@@ -6,9 +6,10 @@ from pathlib import Path
 ffi = FFI()
 
 
-source_files = Path("..").glob("contrib/april/**/*.c")
+base = Path(__file__).parent
+source_files = base.glob("contrib/april/**/*.c")
 
-with open('apriltag_interface.c', 'r') as apriltag_interface:
+with (base / 'apriltag_interface.c').open('r') as apriltag_interface:
     ffi.set_source("_apriltag",
                    apriltag_interface.read(),
                    include_dirs=["../contrib/april", "../contrib/april/common"],
@@ -17,7 +18,7 @@ with open('apriltag_interface.c', 'r') as apriltag_interface:
 
 # Define the functions to be used.
 
-with open('apriltag_cdefs.h', 'r') as apriltag_interface_h:
+with (base / 'apriltag_cdefs.h').open('r') as apriltag_interface_h:
     ffi.cdef(apriltag_interface_h.read())
 
 if __name__ == "__main__":
