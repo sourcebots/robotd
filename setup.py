@@ -11,5 +11,5 @@ setup(name='Robot Daemon',
       packages=find_packages(),
       setup_requires=["cffi>=0.8.6"],
       ffi_modules=["robotd/vision/apriltag/apriltag_build.py:ffibuilder"],
-      install_requires=['pyudev', 'pyserial', 'pygame', 'Pillow', "cffi>=1.0.0", 'numpy'],
+      install_requires=['pyudev', 'pyserial', 'pygame', 'Pillow', "cffi>=0.8.6", 'numpy', 'setproctitle'],
      )
