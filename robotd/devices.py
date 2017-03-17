@@ -53,6 +53,10 @@ class MotorBoard(Board):
         """Run user-provided command."""
         self._status.update(cmd)
         self.connection.write(bytes([
+            2, 2,
+            3, 2,
+            2, 1,
+            3, 1,
             2, self._speed_byte(self._status['left']),
             3, self._speed_byte(self._status['right']),
         ]))
