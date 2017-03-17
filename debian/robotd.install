@@ -1,2 +1,0 @@
-robotd          usr/share/robotd
-robotd.service  lib/systemd/system/
