@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
 export PYBUILD_NAME=robotd
+export PYBUILD_RULES=3.4
 
 %:
 	dh $@ --with systemd,python3 --buildsystem=pybuild
