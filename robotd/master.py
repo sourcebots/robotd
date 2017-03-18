@@ -166,7 +166,11 @@ class MasterProcess(object):
             self._process_device_list(board_type, [])
 
     def _process_device_list(self, board_type, nodes):
-        nodes_by_path = {x.device_path: x for x in nodes}
+        nodes_by_path = {
+            x.device_path: x
+            for x in nodes
+            if board_type.included(x)
+        }
 
         actual_paths = set(nodes_by_path.keys())
         expected_paths = set(self.runners[board_type].keys())

@@ -14,10 +14,13 @@ class MotorBoard(Board):
     """Student Robotics-era Motor board."""
 
     lookup_keys = {
-        'ID_MODEL': 'MCV3B',
         'ID_VENDOR': 'Student_Robotics',
         'subsystem': 'tty',
     }
+
+    @classmethod
+    def included(cls, node):
+        return node['ID_MODEL'] == 'MCV3B'
 
     @classmethod
     def name(cls, node):
@@ -97,8 +100,11 @@ class PowerBoard(Board):
     lookup_keys = {
         'subsystem': 'usb',
         'ID_VENDOR': 'Student_Robotics',
-        'ID_MODEL': 'Power_board_v4',
     }
+
+    @classmethod
+    def included(cls, node):
+        return node['ID_MODEL'] == 'Power_board_v4'
 
     @classmethod
     def name(cls, node):

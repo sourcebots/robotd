@@ -55,6 +55,11 @@ class Board(metaclass=BoardMeta):
         """Simple node name."""
         return node.sys_name
 
+    @classname
+    def included(cls, node):
+        """Mechanism for excluding nodes."""
+        return True
+
     def __init__(self, node):
         """Standard constructor, run in the master process."""
         self.node = node
