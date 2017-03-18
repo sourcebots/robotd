@@ -43,7 +43,7 @@ class Vision:
         int refine_pose
           default: 0, "Spend more time trying to find the position of the tag"
         """
-        lib.apriltag_init(self._detector, 1.0, 0.0, 1, 0, 1)
+        lib.apriltag_init(self._detector, 1.0, 0.0, 1, 0, 0)
         size = self.camera.get_image_size()
         self.image = lib.image_u8_create_stride(size[0], size[1], size[0])
 
