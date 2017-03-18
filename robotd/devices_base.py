@@ -55,7 +55,7 @@ class Board(metaclass=BoardMeta):
         """Simple node name."""
         return node.sys_name
 
-    @classname
+    @classmethod
     def included(cls, node):
         """Mechanism for excluding nodes."""
         return True

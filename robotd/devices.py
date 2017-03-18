@@ -20,7 +20,7 @@ class MotorBoard(Board):
 
     @classmethod
     def included(cls, node):
-        return node['ID_MODEL'] == 'MCV3B'
+        return node['ID_MODEL'] == 'MCV4B'
 
     @classmethod
     def name(cls, node):
@@ -147,6 +147,7 @@ class PowerBoard(Board):
 
 class Camera(Board):
     """Camera"""
+    enabled = False
 
     lookup_keys = {
         'subsystem': 'video4linux',
