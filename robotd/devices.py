@@ -172,6 +172,7 @@ class Camera(Board):
     def vision_thread(self):
         while True:
             results = self.vision.snapshot()
+            print("Vision snapshot: ", results[0])
             with self.vision_lock:
                 self.latest_results, _ = results
 
