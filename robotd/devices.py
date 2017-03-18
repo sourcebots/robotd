@@ -150,8 +150,6 @@ class PowerBoard(Board):
 
 class Camera(Board):
     """Camera"""
-    enabled = False
-
     lookup_keys = {
         'subsystem': 'video4linux',
     }
