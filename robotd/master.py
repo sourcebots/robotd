@@ -104,7 +104,10 @@ class BoardRunner(multiprocessing.Process):
                 if source not in connections:
                     continue
 
-                blob = source.recv(2048).decode('utf-8').strip()
+                try:
+                    blob = source.recv(2048).decode('utf-8').strip()
+                except ConnectionResetError:
+                    blob = None
 
                 if not blob:
                     print("connection closed")
