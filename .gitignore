@@ -2,3 +2,4 @@ __pycache__
 .pybuild
 *.egg-info
 build
+*.pyc
