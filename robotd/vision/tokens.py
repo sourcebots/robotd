@@ -82,7 +82,7 @@ class Token:
         self.size = size
         # Float from 0 to 1 on the quality of the token
         self.certainty = apriltag_detection.goodness
-        arr = ffi.unpack(apriltag_detection.H.data, 3 * 3)
+        arr = [apriltag_detection.H.data[x] for x in range(9)]
         homography = np.reshape(arr, (3, 3))
         self.pixel_corners = get_pixel_corners(homography)
         self.pixel_centre = get_pixel_centre(homography)
