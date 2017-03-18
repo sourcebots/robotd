@@ -1,9 +1,13 @@
 """Actual device classes."""
+import json
+from threading import Lock, Thread
 
 import serial
 
 from robotd import usb
 from robotd.devices_base import Board, BoardMeta
+from robotd.vision.camera import Camera as VisionCamera
+from robotd.vision.vision import Vision
 
 
 class MotorBoard(Board):
@@ -137,5 +141,60 @@ class PowerBoard(Board):
             power = bool(cmd['power'])
             self._set_power_outputs(1 if power else 0)
 
+
+class Camera(Board):
+    """Camera"""
+
+    lookup_keys = {
+        'subsystem': 'video4linux',
+    }
+
+    def __init__(self, node):
+        super().__init__(node)
+        # TODO do not hardcode this, detect which camera is being used
+        CAM_IMAGE_SIZE = (1280, 720)
+        FOCAL_DISTANCE = 720
+        self.camera = VisionCamera(self.node['DEVNAME'], CAM_IMAGE_SIZE, FOCAL_DISTANCE)
+        self.vision = Vision(self.camera, token_size=(0.1, 0.1))  # TODO do not hardcode the token size
+        self.thread = None
+        self.vision_lock = Lock()
+        self.latest_results = []
+        self._status = {'status': 'uninitialised'}
+
+    @classmethod
+    def name(cls, node):
+        # Get device name
+        return node['DEVNAME'].split('/')[-1]
+
+    def vision_thread(self):
+        while True:
+            results = self.vision.snapshot()
+            with self.vision_lock:
+                self.latest_results, _ = results
+
+
+    def start(self):
+        """Open connection to peripheral."""
+        self.vision.init()
+        self._status = {'status': 'initialised'}
+        self.thread = Thread(target=self.vision_thread)
+        self.thread.start()
+
+    def status(self):
+        """Brief status description of the peripheral."""
+        with self.vision_lock:
+            results = self.latest_results
+        return json.dumps(results, default=lambda x: x.__dict__)
+
+    def command(self, cmd):
+        """Run user-provided command."""
+        pass
+
+
 # Grab the full list of boards from the workings of the metaclass
 BOARDS = BoardMeta.BOARDS
+
+
+class Encoder(json.JSONEncoder):
+    def default(self, o):
+        return o.__dict__

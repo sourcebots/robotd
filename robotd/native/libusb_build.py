@@ -4,12 +4,12 @@ ffibuilder = cffi.FFI()
 
 ffibuilder.set_source("robotd.native._usb", """
     #include <libusb.h>
-""", libraries=('usb-1.0',), include_dirs=(
+""", libraries=['usb-1.0',], include_dirs=[
     '/usr/local/include/libusb-1.0',
     '/usr/include/libusb-1.0',
-), library_dirs=(
+], library_dirs=[
     '/lib/arm-linux-gnueabihf',
-))
+])
 
 ffibuilder.cdef("""
     int libusb_init(struct libusb_context** context);

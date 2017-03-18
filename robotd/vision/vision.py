@@ -1,16 +1,15 @@
 """Classes for handling vision"""
 
 from robotd.vision.apriltag._apriltag import ffi, lib
+
+from robotd.vision.camera import Camera
 from robotd.vision.camera_base import CameraBase
-from robotd.vision.token_display import display_tokens
 from robotd.vision.tokens import Token
-from robotd.vision.camera import FileCamera, Camera
-
-
 
 
 class Vision:
     """Class that handles the vision library"""
+
     def __init__(self, camera: CameraBase, token_size):
         # Pygame camera object
         self.camera = camera
@@ -72,9 +71,7 @@ class Vision:
         ffi.memmove(self.image.buf, img.tobytes(), total_length)
         results = lib.apriltag_detector_detect(self._detector, self.image)
 
-
         tokens = self._parse_results(results)
-        # Test code
 
         # Remove the array now we've got them
         lib.zarray_destroy(results)
@@ -94,4 +91,4 @@ if __name__ == "__main__":
     v.init()
     while True:
         tokens, _ = v.snapshot()
-        print(len(tokens),"tokens seen")
+        print(len(tokens), "tokens seen")

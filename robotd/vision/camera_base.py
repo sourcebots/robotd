@@ -2,6 +2,7 @@ class CameraBase:
     def __init__(self):
         self.initialised = False
         self.cam_image_size = None
+        self.focal_length = None
 
     def init(self):
         """ Initialise the camera"""

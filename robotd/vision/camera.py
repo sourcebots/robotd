@@ -6,7 +6,7 @@ from robotd.vision.camera_base import CameraBase
 
 
 class Camera(CameraBase):
-    def __init__(self, camera_path, proposed_image_size,focal_length):
+    def __init__(self, camera_path, proposed_image_size, focal_length):
         super().__init__()
         self.cam_proposed_image_size = proposed_image_size
         self.cam_path = camera_path
