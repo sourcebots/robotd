@@ -1,4 +1,4 @@
-import _usb
+from robotd.native import _usb
 import atexit
 
 context = _usb.ffi.new('struct libusb_context**')
