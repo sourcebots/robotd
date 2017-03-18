@@ -197,8 +197,3 @@ class Camera(Board):
 
 # Grab the full list of boards from the workings of the metaclass
 BOARDS = BoardMeta.BOARDS
-
-
-class Encoder(json.JSONEncoder):
-    def default(self, o):
-        return o.__dict__
