@@ -1,7 +1,7 @@
 import code
 import json
 
-from robotd.vision.apriltag._apriltag import ffi
+from robotd.native.apriltag._apriltag import ffi
 import numpy as np
 import math
 

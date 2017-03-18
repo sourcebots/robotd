@@ -11,7 +11,7 @@ source_files = base.glob("contrib/april/**/*.c")
 
 with (base / 'apriltag_interface.c').open('r') as apriltag_interface:
     ffi.set_source(
-        "_apriltag",
+        "robotd.native.apriltag._apriltag",
         apriltag_interface.read(),
         include_dirs=[
             str(base),
