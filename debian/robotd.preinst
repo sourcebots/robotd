@@ -2,12 +2,6 @@
 set -e
 
 mkdir -p /var/robotd
-adduser --system \
-        --home /var/robotd \
-        --quiet \
-        --group \
-        robotd
-chown robotd:robotd /var/robotd
 
 #DEBHELPER#
 
