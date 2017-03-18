@@ -113,7 +113,10 @@ class PowerBoard(Board):
 
     def start(self):
         """Open connection to peripheral."""
-        path = tuple(int(x) for x in self.node['DEVNAME'].split('/')[4:])
+        # I am so sorry
+        path = tuple(int(x) for x in (
+            self.node['DEVPATH'].rsplit('-', 1)[-1].split('.')
+        ))
 
         for device in usb.enumerate():
             if device.path == path:
