@@ -45,6 +45,10 @@ class Device(object):
         self._handle = _usb.ffi.new('struct libusb_device_handle**')
         _usb.lib.libusb_open(self._device, self._handle)
 
+        if self._handle[0] == _usb.ffi.NULL:
+            self._handle = None
+            raise RuntimeError("Could not open device")
+
     def close(self):
         if self._handle is None:
             return  # Idempotent
