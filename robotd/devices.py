@@ -116,11 +116,8 @@ class PowerBoard(Board):
         else:
             raise RuntimeError("Cannot open USB device by path")
 
-        print("OPEN")
         self.device.open()
-        print("SAFIFY")
         self.make_safe()
-        print("DONE START")
 
     def _set_power_outputs(self, level):
         for command in (0, 1, 2, 3, 4, 5):

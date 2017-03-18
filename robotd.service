@@ -2,7 +2,6 @@
 Description=Provide access to robot peripherals
 
 [Service]
-WorkingDirectory=/usr/share/robotd
 ExecStart=/usr/bin/python3 -u -m robotd.master
 KillMode=mixed
 KillSignal=SIGINT
