@@ -2,6 +2,7 @@
 
 import serial
 
+from robotd import usb
 from robotd.devices_base import Board, BoardMeta
 
 
@@ -87,6 +88,54 @@ class BrainTemperatureSensor(Board):
             temp_milli_degrees = int(f.read())
         return {'temperature': temp_milli_degrees / 1000}
 
+
+class PowerBoard(Board):
+    lookup_keys = {
+        'subsystem': 'usb',
+        'ID_VENDOR': 'Student_Robotics',
+        'ID_MODEL': 'Power_board_v4',
+    }
+
+    @classmethod
+    def name(cls, node):
+        """Board name."""
+        return node['ID_SERIAL_SHORT']
+
+    def start(self):
+        """Open connection to peripheral."""
+        path = tuple(int(x) for x in self.node['DEVNAME'].split('/')[4:])
+
+        for device in usb.enumerate():
+            if device.path == path:
+                self.device = device
+                break
+        else:
+            raise RuntimeError("Cannot open USB device by path")
+
+        print("OPEN")
+        self.device.open()
+        print("SAFIFY")
+        self.make_safe()
+        print("DONE START")
+
+    def _set_power_outputs(self, level):
+        for command in (0, 1, 2, 3, 4, 5):
+            self.device.control_write(
+                64,
+                level,
+                command,
+            )
+
+    def make_safe(self):
+        self._set_power_outputs(0)
+
+    def status(self):
+        return {}
+
+    def command(self, cmd):
+        if 'power' in cmd:
+            power = bool(cmd['power'])
+            self._set_power_outputs(1 if power else 0)
 
 # Grab the full list of boards from the workings of the metaclass
 BOARDS = BoardMeta.BOARDS
