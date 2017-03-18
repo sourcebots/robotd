@@ -1,6 +1,6 @@
 """Classes for handling vision"""
 
-from robotd.vision.apriltag._apriltag import ffi, lib
+from robotd.native.apriltag._apriltag import ffi, lib
 
 from robotd.vision.camera import Camera
 from robotd.vision.camera_base import CameraBase
