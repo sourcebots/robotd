@@ -14,8 +14,8 @@ setup(
         'cffi>=1.4.0',
     ],
     cffi_modules=[
-        'robotd/native/apriltag/apriltag_build.py:ffi',
         'robotd/native/libusb_build.py:ffibuilder',
+        'robotd/native/apriltag/apriltag_build.py:ffi',
     ],
     install_requires=[
         'pyudev',
