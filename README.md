@@ -5,7 +5,7 @@ Runs a master process which monitors for Robot peripherals. For each one it
 finds, it opens a UNIX seqpacket socket in `/var/robotd/<type>/<id>` and runs
 a controller process to actually communicate with the board.
 
-Currently just handles the motor board.
+Currently just handles the motor board and cameras
 
 Tour of the source
 ------------------
