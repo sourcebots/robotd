@@ -44,8 +44,11 @@ def display_tokens(tokens: Token, image: Image):
 
     for token, color in zip(tokens, token_colors):
         corners = token.pixel_corners
+        centre = token.pixel_centre
         avg_point = np.mean(corners, axis=0)
         dr.line(corners + [corners[0]], fill=color, width=4)
+        ellipse_pos = [(centre[0] - 5, centre[1] - 5), (centre[0] + 5, centre[1] + 5)]
+        dr.ellipse(ellipse_pos, fill=color)
         for point in corners:
             ellipse_pos = [(point[0] - 5, point[1] - 5), (point[0] + 5, point[1] + 5)]
             dr.ellipse(ellipse_pos, fill=color)

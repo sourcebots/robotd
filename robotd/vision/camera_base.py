@@ -9,6 +9,7 @@ class CameraBase:
         self.initialised = True
 
     def get_image_size(self):
+        """ Get the size of images captured by the camera"""
         if not self.initialised:
             raise RuntimeError("Must Initialise camera before getting image size")
         return self.cam_image_size

@@ -4,9 +4,9 @@ from PIL import Image
 from robotd.vision.camera_base import CameraBase
 
 
-
 class Camera(CameraBase):
     def __init__(self, camera_path, proposed_image_size, focal_length):
+        """Initialise camera with focal length and image size."""
         super().__init__()
         self.cam_proposed_image_size = proposed_image_size
         self.cam_path = camera_path
@@ -40,28 +40,31 @@ class Camera(CameraBase):
         self._deinit_camera()
 
     def capture_image(self):
+        """
+        Capture an image
+        :return: PIL image object of the captured image in Luminosity color scale
+        """
         self.camera.get_image(self._cam_surface)
         # Convert the surface to RGB
         img_bytes = pygame.image.tostring(self._cam_surface, "RGB", False)
         img = Image.frombytes('RGB', self.cam_image_size, img_bytes)
         img = img.convert('L')
-        img = img.rotate(180)
         return img
 
-    # TODO: Remove lens distortions
+    # TODO: Cancel out lens distortions
 
 
 class FileCamera(CameraBase):
-    """ Debug class for cameras, displays a file"""
-    def __init__(self, filepath, focal_length):
+    """ Debug class for cameras, returns an image instead of querying a camera"""
+    def __init__(self, file_path, focal_length):
         super().__init__()
-        self.filename = filepath
+        self.file_name = file_path
         self.image = None
         self.focal_length = focal_length
 
     def init(self):
         super().init()
-        self.image = Image.open(self.filename)
+        self.image = Image.open(self.file_name)
         self.image = self.image.convert('L')
         self.cam_image_size = self.image.size
 
