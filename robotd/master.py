@@ -17,11 +17,12 @@ from robotd.devices import BOARDS
 class BoardRunner(multiprocessing.Process):
     """Control process for one board."""
 
-    def __init__(self, board, **kwargs):
+    def __init__(self, board, root_dir, **kwargs):
         """Constructor from a given `Board`."""
         super().__init__(**kwargs)
         self.board = board
-        self.socket_path = Path("/var/robotd/{}/{}".format(
+        self.socket_path = Path("{}robotd/{}/{}".format(
+            root_dir,
             type(board).board_type_id,
             board.name(board.node),
         ))
@@ -45,6 +46,7 @@ class BoardRunner(multiprocessing.Process):
         * Deal with error handling and shutdown.
         """
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+
         sock.bind(str(self.socket_path))
         sock.listen(5)
 
@@ -93,10 +95,9 @@ class BoardRunner(multiprocessing.Process):
                 readable.append(new_connection)
                 connections.append(new_connection)
                 print("new connection opened")
-
                 new_connection.send((
-                    json.dumps(self.board.status()) + '\n'
-                ).encode('utf-8'))
+                                        json.dumps(self.board.status()) + '\n'
+                                    ).encode('utf-8'))
 
             dead_connections = []
 
@@ -122,8 +123,8 @@ class BoardRunner(multiprocessing.Process):
                     if command != {}:
                         self.board.command(command)
                     source.send((
-                        json.dumps(self.board.status()) + '\n'
-                    ).encode('utf-8'))
+                                    json.dumps(self.board.status()) + '\n'
+                                ).encode('utf-8'))
 
             for source in errorable:
                 print("err? ", source)
@@ -152,10 +153,11 @@ class BoardRunner(multiprocessing.Process):
 class MasterProcess(object):
     """The mighty God object which manages the controllers."""
 
-    def __init__(self):
+    def __init__(self, root_dir):
         """Standard constructor."""
         self.runners = collections.defaultdict(dict)
         self.context = pyudev.Context()
+        self.root_dir = root_dir
 
     def tick(self):
         """Poll udev for any new or missing boards."""
@@ -190,7 +192,7 @@ class MasterProcess(object):
                 ),
             )
             instance = board_type(nodes_by_path[new_device])
-            runner = BoardRunner(instance)
+            runner = BoardRunner(instance, self.root_dir)
             runner.start()
             self.runners[board_type][new_device] = runner
 
@@ -203,9 +205,9 @@ class MasterProcess(object):
             del self.runners[board_type][dead_device]
 
 
-def main():
+def main(**kwargs):
     """Main entry point."""
-    master = MasterProcess()
+    master = MasterProcess(**kwargs)
 
     setproctitle.setproctitle("robotd master")
 
@@ -219,4 +221,14 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+
+    # Parse terminal arguments
+    import argparse
+    parser = argparse.ArgumentParser()
+
+    default_root_dir = "/var/"
+    parser.add_argument("--root_dir", help="""directory to run root of robotd at (defaults to {})""".format(default_root_dir),
+                        default=default_root_dir)
+    args = parser.parse_args()
+
+    main(**vars(args))
