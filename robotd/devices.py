@@ -1,5 +1,4 @@
 """Actual device classes."""
-import json
 from threading import Lock, Thread
 
 import serial
@@ -41,7 +40,7 @@ class MotorBoard(Board):
         """
         # Brake both the motors
         self.connection.write(b'\x00\x02\x02\x03\x02')
-        self._status = {'left': 'brake', 'right': 'brake'}
+        self._status = {'m0': 'brake', 'm1': 'brake'}
 
     def status(self):
         """Brief status description of the peripheral."""
@@ -65,8 +64,8 @@ class MotorBoard(Board):
             3, 2,
             2, 1,
             3, 1,
-            2, self._speed_byte(self._status['left']),
-            3, self._speed_byte(self._status['right']),
+            2, self._speed_byte(self._status['m0']),
+            3, self._speed_byte(self._status['m1']),
         ]))
 
 
@@ -156,7 +155,7 @@ class Camera(Board):
 
     def __init__(self, node):
         super().__init__(node)
-        # TODO do not hardcode this, detect which camera is being used
+        # TODO do not hard-code this, detect from which camera is being used
         CAM_IMAGE_SIZE = (1280, 720)
         FOCAL_DISTANCE = 720
         self.camera = VisionCamera(self.node['DEVNAME'], CAM_IMAGE_SIZE, FOCAL_DISTANCE)
@@ -172,12 +171,13 @@ class Camera(Board):
         return node['DEVNAME'].split('/')[-1]
 
     def vision_thread(self):
+        counter = 0
         while True:
-            results = self.vision.snapshot()
-            print("Vision snapshot: ", results[0])
-            with self.vision_lock:
-                self.latest_results, _ = results
-
+            image = self.vision.snapshot()
+            results = self.vision.process_image(image)
+            print("Vision snapshot: ", results)
+            self.latest_results = results
+            self.broadcast({"tokens": [x.__dict__ for x in results]})
 
     def start(self):
         """Open connection to peripheral."""
@@ -188,9 +188,8 @@ class Camera(Board):
 
     def status(self):
         """Brief status description of the peripheral."""
-        with self.vision_lock:
-            results = self.latest_results
-        return json.dumps(results, default=lambda x: x.__dict__)
+        # TODO
+        return {}
 
     def command(self, cmd):
         """Run user-provided command."""
