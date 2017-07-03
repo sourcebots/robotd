@@ -28,6 +28,9 @@ class BoardMeta(type):
         from the name of the class, but can be overridden by assigning a
         string to `board_type_id` in a subclass.
         """
+        if 'board_type_id' in self.__dict__:
+            return self.__dict__['board_type_id']
+
         full_name = self.__name__
 
         if full_name.endswith('Board'):
