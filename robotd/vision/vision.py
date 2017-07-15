@@ -12,7 +12,6 @@ class Vision:
     """Class that handles the vision library and the camera."""
 
     def __init__(self, camera: CameraBase, token_size):
-        # Pygame camera object
         self.camera = camera
         # size of the tokens the camera is testing
         self.token_size = token_size
@@ -107,19 +106,29 @@ if __name__ == "__main__":
     """
     Debug code, load the first video device seen and capture an image
     """
-    # Capture Webcam image
-    camera = "webcam"
-    if camera is "webcam":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', nargs='?', default=False,
+                        help="""Pass an image file to use, otherwise use webcam,
+                        if filename is blank, uses 'tagsampler.png'""")
+    args = parser.parse_args()
+    # Change the below for quick debugging
+    if args.f is False:
         CAM_DEVICE = "/dev/video0"
         CAM_IMAGE_SIZE = (1280, 720)
         FOCAL_DISTANCE = 720
         camera = Camera(CAM_DEVICE, CAM_IMAGE_SIZE, 720)
-    else: # File cam
-        camera = FileCamera("tagsampler.png")
+    else:
+        if args.f is None:
+            f = "tagsampler.png"
+        else:
+            f = args.f
+        camera = FileCamera(f, 720)
     v = Vision(camera, (0.1, 0.1))
     v.init()
     while True:
-        tokens, img = v.snapshot()
+        img = v.snapshot()
+        tokens = v.process_image(img)
         img = display_tokens(tokens, img)
         img.show()
         if tokens:

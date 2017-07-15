@@ -1,5 +1,6 @@
 """Actual device classes."""
-from threading import Lock, Thread
+from pathlib import Path
+from threading import Lock, Thread, Event
 
 import serial
 
@@ -153,31 +154,36 @@ class Camera(Board):
         'subsystem': 'video4linux',
     }
 
-    def __init__(self, node):
+    def __init__(self, node, camera=None):
         super().__init__(node)
         # TODO do not hard-code this, detect from which camera is being used
-        CAM_IMAGE_SIZE = (1280, 720)
-        FOCAL_DISTANCE = 720
-        self.camera = VisionCamera(self.node['DEVNAME'], CAM_IMAGE_SIZE, FOCAL_DISTANCE)
-        self.vision = Vision(self.camera, token_size=(0.1, 0.1))  # TODO do not hardcode the token size
+        if camera is None:
+            CAM_IMAGE_SIZE = (1280, 720)
+            FOCAL_DISTANCE = 720
+            camera = VisionCamera(self.node['DEVNAME'], CAM_IMAGE_SIZE, FOCAL_DISTANCE)
         self.thread = None
-        self.vision_lock = Lock()
+        self.vision = self._create_vision(camera)
+        self.running = False
         self.latest_results = []
         self._status = {'status': 'uninitialised'}
+
+    @staticmethod
+    def _create_vision(camera):
+        return Vision(camera, token_size=(0.1, 0.1))  # TODO do not hardcode the token size
 
     @classmethod
     def name(cls, node):
         # Get device name
-        return node['DEVNAME'].split('/')[-1]
+        return Path(node['DEVNAME']).stem
 
     def vision_thread(self):
-        counter = 0
-        while True:
+        self.running = True
+        while self.running:
             image = self.vision.snapshot()
             results = self.vision.process_image(image)
-            print("Vision snapshot: ", results)
-            self.latest_results = results
-            self.broadcast({"tokens": [x.__dict__ for x in results]})
+            # print("Vision snapshot: ", results)
+            self.latest_results = {"tokens": [x.__dict__ for x in results]}
+            self.broadcast(self.latest_results)
 
     def start(self):
         """Open connection to peripheral."""
@@ -186,9 +192,12 @@ class Camera(Board):
         self.thread = Thread(target=self.vision_thread)
         self.thread.start()
 
+    def stop(self):
+        self.running = False
+        self.thread.join()
+
     def status(self):
-        """Brief status description of the peripheral."""
-        # TODO
+        """Get latest image results"""
         return {}
 
     def command(self, cmd):

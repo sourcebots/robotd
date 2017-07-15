@@ -32,7 +32,6 @@ class BoardRunner(multiprocessing.Process):
             if self.socket_path.exists():
                 print("Warning: removing old {}".format(self.socket_path))
                 self.socket_path.unlink()
-        print(self.socket_path)
 
     def run(self):
         """
@@ -69,6 +68,8 @@ class BoardRunner(multiprocessing.Process):
 
             retained_connections = []
 
+            # print("Broadcasting:", msg)
+
             for connection in list(connections):
                 try:
                     connection.send(msg)
@@ -94,7 +95,8 @@ class BoardRunner(multiprocessing.Process):
                 (new_connection, _) = sock.accept()
                 readable.append(new_connection)
                 connections.append(new_connection)
-                print("new connection opened")
+                print("new connection opened at {}".format(self.socket_path))
+                print("Sending welcome msg:", self.board.status())
                 new_connection.send((
                                         json.dumps(self.board.status()) + '\n'
                                     ).encode('utf-8'))
@@ -122,6 +124,7 @@ class BoardRunner(multiprocessing.Process):
                 else:
                     if command != {}:
                         self.board.command(command)
+                    print("Sending response:", self.board.status())
                     source.send((
                                     json.dumps(self.board.status()) + '\n'
                                 ).encode('utf-8'))
