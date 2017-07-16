@@ -48,7 +48,7 @@ class MotorBoard(Board):
         return self._status
 
     def _speed_byte(self, value):
-        if value == 'free':
+        if value == 'coast':
             return 1
         elif value == 'brake':
             return 2
@@ -150,6 +150,9 @@ class PowerBoard(Board):
 
 class Camera(Board):
     """Camera"""
+
+    # TODO Get the serial from the USB connection so we can handle 2 cameras without an issue
+    # ...(This might not even be possible if the cameras are the same model)
     lookup_keys = {
         'subsystem': 'video4linux',
     }
@@ -194,7 +197,8 @@ class Camera(Board):
 
     def stop(self):
         self.running = False
-        self.thread.join()
+        if self.thread:
+            self.thread.join()
 
     def status(self):
         """Get latest image results"""

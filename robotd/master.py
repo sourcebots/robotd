@@ -141,7 +141,7 @@ class BoardRunner(multiprocessing.Process):
                 print("Last connection closed")
                 self.board.make_safe()
 
-    def cleanup_socket(self):
+    def cleanup(self):
         """
         Clean up the UNIX socket if it's been left around.
 
@@ -151,6 +151,7 @@ class BoardRunner(multiprocessing.Process):
             self.socket_path.unlink()
         except FileNotFoundError:
             pass
+        self.board.stop()
 
 
 class MasterProcess(object):
@@ -204,7 +205,7 @@ class MasterProcess(object):
             runner = self.runners[board_type][dead_device]
             runner.terminate()
             runner.join()
-            runner.cleanup_socket()
+            runner.cleanup()
             del self.runners[board_type][dead_device]
 
 
