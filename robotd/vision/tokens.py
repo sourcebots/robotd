@@ -29,7 +29,8 @@ def decompose_homography(Homography, Calibration):
     :param Calibration:
     :return: Rotation list, Translation List, Normals List
     """
-
+    # This would be the first step for properly calculating the relative location of the marker
+    pass
 
 
 def get_pixel_corners(homog):
@@ -57,6 +58,7 @@ def get_pixel_centre(homography_matrix):
 
 def get_cartesian(corner_pixels, focal_length, size):
     """ Convert the location of corner pixels to a 3D cartesian co-ordinate."""
+    # TODO: This doesn't work. Re-implement to fix it.
     marker_width = size[0]
     # setup a
     a = np.array([[-corner_pixels[0][0], corner_pixels[1][0], corner_pixels[2][0]],
@@ -76,7 +78,6 @@ def get_cartesian(corner_pixels, focal_length, size):
     k_list.append(k3)
     cartesian = [(corner_pixels[i][0] * k_list[i], corner_pixels[i][1] * k_list[i], focal_length * k_list[i]) for i in
                  range(4)]
-    print(cartesian)
     return cartesian
 
 
@@ -93,20 +94,38 @@ def get_distance(cartesian):
     return math.sqrt(x ** 2 + y ** 2 + z ** 2)
 
 
+def cart_to_polar(cartesian_coord):
+    # TODO implement
+    # (Don't bother making a struct for this, we will to send it over json in a sec)
+    # (it's currently undefined what X, Y, and Z is. Go nuts
+    rot_x, rot_y, rot_z, dist = 0, 0, 0, 0
+    return (rot_x, rot_y, rot_z), dist
+
+
 class Token:
     """ Class representing an apriltag Token"""
-    def __init__(self, apriltag_detection, size, focal_length):
+
+    def __init__(self, apriltag_detection, sizes, focal_length):
+        # *************************************************************************
+        # NOTE: IF YOU CHANGE THIS PLEASE ADD THEM IN THE ROBOT-API camera.py
+        # *************************************************************************
+
         # ID of the tag
         self.id = apriltag_detection.id
-        self.size = size
+        # Marker size
+        self.size = sizes[self.id] if self.id in sizes else (0.25, 0.25)  # Return 0.25,0.25 as a default size
         # Float from 0 to 1 on the quality of the token
         self.certainty = apriltag_detection.goodness
         arr = [apriltag_detection.H.data[x] for x in range(9)]
         homography = np.reshape(arr, (3, 3))
+        # pixel coordinates of the corners of the marker
         self.pixel_corners = get_pixel_corners(homography)
+        # pixel coordinates of the centre of the marker
         self.pixel_centre = get_pixel_centre(homography)
-        # self.cartesian = get_cartesian(self.pixel_corners,focal_length,size)
-        self.distance = get_distance_for_family_day(self.pixel_corners, focal_length, size[1])
+        # Cartesian Co-ordinates in the 3D World, relative to the camera (as opposed to somehow being compass-aligned)
+        self.cartesian = get_cartesian(self.pixel_corners, focal_length, self.size)
+        # Polar Co-ordinates in the 3D World, relative to the front of the camera
+        self.polar = cart_to_polar(self.cartesian)
 
     def __repr__(self):
         return "Token: {}, certainty:{}".format(self.id, self.certainty)

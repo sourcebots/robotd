@@ -6,6 +6,7 @@ import serial
 
 from robotd import usb
 from robotd.devices_base import Board, BoardMeta
+from robotd.game_specific import MARKER_SIZES
 from robotd.vision.camera import Camera as VisionCamera
 from robotd.vision.vision import Vision
 
@@ -157,13 +158,17 @@ class Camera(Board):
         'subsystem': 'video4linux',
     }
 
-    def __init__(self, node, camera=None):
+    def __init__(self, node, camera=None, token_sizes=None):
         super().__init__(node)
         # TODO do not hard-code this, detect from which camera is being used
         if camera is None:
             CAM_IMAGE_SIZE = (1280, 720)
             FOCAL_DISTANCE = 720
             camera = VisionCamera(self.node['DEVNAME'], CAM_IMAGE_SIZE, FOCAL_DISTANCE)
+        if token_sizes is None:
+            self.token_sizes = MARKER_SIZES
+        else:
+            self.token_sizes = token_sizes
         self.thread = None
         self.vision = self._create_vision(camera)
         self.running = False
@@ -172,7 +177,7 @@ class Camera(Board):
 
     @staticmethod
     def _create_vision(camera):
-        return Vision(camera, token_size=(0.1, 0.1))  # TODO do not hardcode the token size
+        return Vision(camera, MARKER_SIZES)
 
     @classmethod
     def name(cls, node):

@@ -124,7 +124,7 @@ class BoardRunner(multiprocessing.Process):
                 else:
                     if command != {}:
                         self.board.command(command)
-                    print("Sending response:", self.board.status())
+                    print("Sending response:", json.dumps(self.board.status()))
                     source.send((
                                     json.dumps(self.board.status()) + '\n'
                                 ).encode('utf-8'))
