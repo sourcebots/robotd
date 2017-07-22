@@ -34,8 +34,6 @@ once done you can `pip install -e .` as usual.
 Building the debian package
 ---------------------------
 
-Ensure
-
 ```
 # Install build tools:
 sudo apt install build-essential devscripts debhelper dh-systemd
