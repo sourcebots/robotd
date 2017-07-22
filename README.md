@@ -36,13 +36,13 @@ Building the debian package
 
 ```
 # Install build tools:
-sudo apt install build-essential devscripts debhelper dh-systemd
-
-# Install dependencies
-sudo apt install libusb-1.0-0-dev python3-cffi
+sudo apt install build-essential devscripts debhelper dh-systemd equivs
 
 # cd to the root of this project
 cd path/to/robotd
+
+# Install dependencies
+sudo mk-build-deps -ir
 
 # Build the package:
 debuild -uc -us
