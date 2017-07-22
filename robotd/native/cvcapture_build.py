@@ -9,6 +9,10 @@ ffibuilder.set_source("robotd.native._cvcapture", """
     int cvcapture(void* buffer, size_t width, size_t height);
 """, sources=[
     base / 'cvcapture.cpp',
+], libraries=[
+    'opencv_core',
+    'opencv_highgui',
+    'opencv_imgproc',
 ])
 
 ffibuilder.cdef("""
