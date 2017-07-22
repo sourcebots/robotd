@@ -20,13 +20,13 @@ Tour of the source
 Building the Debian package
 ---------------------------
 
-Install through apt:
+``` bash
+# Install build tools:
+sudo apt install build-essential devscripts debhelper dh-systemd
 
-* `build-essential`
-* `devscripts`
-* `debhelper`
-* `dh-systemd`
+# cd to the root of this project
+cd path/to/robotd
 
-And then run, from the root of the project:
-
-* `debuild -uc -us`
+# Build the package:
+debuild -uc -us
+```
