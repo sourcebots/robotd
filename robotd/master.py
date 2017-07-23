@@ -231,8 +231,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     default_root_dir = "/var/"
-    parser.add_argument("--root-dir", help="""directory to run root of robotd at (defaults to {})""".format(default_root_dir),
-                        default=default_root_dir)
+    parser.add_argument(
+        "--root-dir",
+        help="""directory to run root of robotd at (defaults to {})""".format(default_root_dir),
+        default=default_root_dir,
+    )
     args = parser.parse_args()
 
     main(**vars(args))
