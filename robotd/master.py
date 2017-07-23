@@ -21,11 +21,12 @@ class BoardRunner(multiprocessing.Process):
         """Constructor from a given `Board`."""
         super().__init__(**kwargs)
         self.board = board
-        self.socket_path = Path("{}robotd/{}/{}".format(
-            root_dir,
-            type(board).board_type_id,
-            board.name(board.node),
-        ))
+        self.socket_path = (
+            self.root_dir /
+            'robotd' /
+            type(board).board_type_id /
+            board.name(board.node)
+        )
         try:
             self.socket_path.parent.mkdir(parents=True)
         except FileExistsError:
