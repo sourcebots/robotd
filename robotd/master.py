@@ -161,7 +161,7 @@ class MasterProcess(object):
         """Standard constructor."""
         self.runners = collections.defaultdict(dict)
         self.context = pyudev.Context()
-        self.root_dir = root_dir
+        self.root_dir = Path(root_dir)
 
     def tick(self):
         """Poll udev for any new or missing boards."""
