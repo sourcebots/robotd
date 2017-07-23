@@ -1,3 +1,5 @@
+import threading
+
 from robotd.native import _cvcapture
 
 class CaptureDevice(object):
@@ -10,6 +12,7 @@ class CaptureDevice(object):
         else:
             argument_c = _cvcapture.ffi.NULL
         self.instance = _cvcapture.lib.cvopen(argument_c)
+        self.lock = threading.Lock()
 
     def capture(self, width, height):
         if self.instance is None:
@@ -19,12 +22,13 @@ class CaptureDevice(object):
             'uint8_t[{}]'.format(width * height),
         )
 
-        status = _cvcapture.lib.cvcapture(
-            self.instance,
-            capture_buffer,
-            width,
-            height,
-        )
+        with self.lock:
+            status = _cvcapture.lib.cvcapture(
+                self.instance,
+                capture_buffer,
+                width,
+                height,
+            )
 
         if status == 0:
             raise RuntimeError("cvcapture() failed")
@@ -39,7 +43,8 @@ class CaptureDevice(object):
 
     def close(self):
         if self.instance is not None:
-            _cvcapture.lib.cvclose(self.instance)
+            with self.lock:
+                _cvcapture.lib.cvclose(self.instance)
             self.instance = None
 
     __del__ = close
