@@ -79,6 +79,10 @@ class Board(metaclass=BoardMeta):
         """
         pass
 
+    def stop(self):
+        """Close connection to the peripheral."""
+        pass
+
     def status(self):
         """Brief status description of the peripheral."""
         return {}

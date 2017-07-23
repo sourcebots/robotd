@@ -2,6 +2,7 @@
 
 from robotd.native.apriltag._apriltag import ffi, lib
 
+from robotd.game_specific import MARKER_SIZES
 from robotd.vision.camera import Camera, FileCamera
 from robotd.vision.camera_base import CameraBase
 from robotd.vision.token_display import display_tokens
@@ -11,10 +12,10 @@ from robotd.vision.tokens import Token
 class Vision:
     """Class that handles the vision library and the camera."""
 
-    def __init__(self, camera: CameraBase, token_size):
+    def __init__(self, camera: CameraBase, token_sizes):
         self.camera = camera
-        # size of the tokens the camera is testing
-        self.token_size = token_size
+        # index for marker sizes
+        self.token_sizes = token_sizes
         # apriltag detector object
         self._detector = None
         # image from camera
@@ -71,7 +72,7 @@ class Vision:
         markers = []
         for i in range(results.size):
             detection = lib.zarray_get_detection(results, i)
-            markers.append(Token(detection, self.token_size, self.camera.focal_length))
+            markers.append(Token(detection, self.token_sizes, self.camera.focal_length))
             lib.destroy_detection(detection)
         return markers
 
@@ -123,7 +124,7 @@ if __name__ == "__main__":
         else:
             f = args.f
         camera = FileCamera(f, 720)
-    v = Vision(camera, (0.1, 0.1))
+    v = Vision(camera, MARKER_SIZES)
     v.init()
     while True:
         img = v.snapshot()
