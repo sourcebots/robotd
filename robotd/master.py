@@ -43,6 +43,7 @@ class BoardRunner(multiprocessing.Process):
         * Pass on commands to the `board`,
         * Call `make_safe` whenever the last user disconnects,
         * Deal with error handling and shutdown.
+
         """
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
 
@@ -84,9 +85,13 @@ class BoardRunner(multiprocessing.Process):
         self.board.start()
 
         while True:
+            # Wait until one of the sockets is ready to read.
             (readable, _, errorable) = select.select(
+                # connections that want to read
                 [sock] + connections,
+                # connections that want to write
                 [],
+                # connections that want to error
                 connections,
             )
 

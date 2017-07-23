@@ -40,7 +40,7 @@ class MotorBoard(Board):
 
         This is called after control connections have died.
         """
-        # Brake both the motors
+        # set both motors to brake
         self.connection.write(b'\x00\x02\x02\x03\x02')
         self._status = {'m0': 'brake', 'm1': 'brake'}
 
@@ -171,7 +171,7 @@ class Camera(Board):
             self.token_sizes = token_sizes
         self.thread = None
         self.vision = self._create_vision(camera)
-        self.running = False
+        self.stop_event = Event()
         self.latest_results = []
         self._status = {'status': 'uninitialised'}
 
@@ -185,8 +185,8 @@ class Camera(Board):
         return Path(node['DEVNAME']).stem
 
     def vision_thread(self):
-        self.running = True
-        while self.running:
+        self.stop_event.clear()
+        while not self.stop_event.is_set():
             image = self.vision.snapshot()
             results = self.vision.process_image(image)
             # print("Vision snapshot: ", results)
@@ -201,7 +201,7 @@ class Camera(Board):
         self.thread.start()
 
     def stop(self):
-        self.running = False
+        self.stop_event.set()
         if self.thread:
             self.thread.join()
 
