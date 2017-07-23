@@ -49,10 +49,6 @@ int cvcapture(void* context, void* buffer, size_t width, size_t height) {
 
     cv::Mat colour_image, greyscale_image, denoised_image, thresholded_image;
 
-    if (!cap->isOpened()) {
-        return 0;
-    }
-
     (*cap) >> colour_image;
     cv::cvtColor(colour_image, greyscale_image, cv::COLOR_BGR2GRAY);
     cv::medianBlur(greyscale_image, denoised_image, 3);
