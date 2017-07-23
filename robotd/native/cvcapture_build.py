@@ -14,7 +14,7 @@ CVCAPTURE_DECLS = """
 ffibuilder.set_source(
     "robotd.native._cvcapture",
     CVCAPTURE_DECLS, sources=[
-        base / 'cvcapture.cpp',
+        str(base / 'cvcapture.cpp'),
     ], libraries=[
         'opencv_core',
         'opencv_highgui',
