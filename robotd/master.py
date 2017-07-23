@@ -168,11 +168,17 @@ class MasterProcess(object):
         self.context = pyudev.Context()
         self.root_dir = Path(root_dir)
 
+        # Init the startup boards
+        for board_type in BOARDS:
+            if board_type.create_on_startup:
+                self._start_board_instance(board_type, 'startup')
+
     def tick(self):
         """Poll udev for any new or missing boards."""
         for board_type in BOARDS:
-            nodes = self.context.list_devices(**board_type.lookup_keys)
-            self._process_device_list(board_type, nodes)
+            if hasattr(board_type, 'lookup_keys'):
+                nodes = self.context.list_devices(**board_type.lookup_keys)
+                self._process_device_list(board_type, nodes)
 
     def cleanup(self):
         """Shut down all the controllers."""
@@ -200,10 +206,7 @@ class MasterProcess(object):
                     board_type.name(nodes_by_path[new_device]),
                 ),
             )
-            instance = board_type(nodes_by_path[new_device])
-            runner = BoardRunner(instance, self.root_dir)
-            runner.start()
-            self.runners[board_type][new_device] = runner
+            self._start_board_instance(board_type, new_device, node=nodes_by_path[new_device])
 
         for dead_device in missing_paths:
             print("Disconnected %s: %s" % (board_type.__name__, dead_device))
@@ -212,6 +215,12 @@ class MasterProcess(object):
             runner.join()
             runner.cleanup()
             del self.runners[board_type][dead_device]
+
+    def _start_board_instance(self, board_type, new_device, **kwargs):
+        instance = board_type(**kwargs)
+        runner = BoardRunner(instance, self.root_dir)
+        runner.start()
+        self.runners[board_type][new_device] = runner
 
 
 def main(**kwargs):

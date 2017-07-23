@@ -97,6 +97,30 @@ class BrainTemperatureSensor(Board):
         return {'temperature': temp_milli_degrees / 1000}
 
 
+class GameState(Board):
+    """
+    State storage for the game. keeps a store of whet it is sent
+    """
+
+    # define the name od the board
+    board_type_id = 'game'
+    create_on_startup = True
+
+    def __init__(self):
+        super().__init__({})
+        self._state = {'corner': 0, 'mode': 'development'}
+
+    @classmethod
+    def name(cls, node):
+        return "state"
+
+    def command(self, cmd):
+        self._state.update(cmd)
+
+    def status(self):
+        return self._state
+
+
 class PowerBoard(Board):
     lookup_keys = {
         'subsystem': 'usb',
