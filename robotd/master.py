@@ -240,4 +240,6 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    main(**vars(args))
+    main(
+        root_dir=args.root_dir,
+    )
