@@ -114,10 +114,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Change the below for quick debugging
     if args.f is False:
-        CAM_DEVICE = "/dev/video0"
         CAM_IMAGE_SIZE = (1280, 720)
         FOCAL_DISTANCE = 720
-        camera = Camera(CAM_DEVICE, CAM_IMAGE_SIZE, 720)
+        camera = Camera(None, CAM_IMAGE_SIZE, 720)
     else:
         if args.f is None:
             f = "tagsampler.png"
