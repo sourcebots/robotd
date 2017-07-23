@@ -20,7 +20,6 @@ setup(
     install_requires=[
         'pyudev',
         'pyserial',
-        'pygame',
         'Pillow',
         "cffi>=1.4.0",
         'numpy',
