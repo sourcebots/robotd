@@ -27,10 +27,6 @@ void cvclose(void* context) {
     delete cap;
 }
 
-static void describe_image(const char* stage, const cv::Mat& mat) {
-    fprintf(stderr, "%s: %d x %d\n", stage, mat.size().width, mat.size().height);
-}
-
 int cvcapture(void* context, void* buffer, size_t width, size_t height) {
     cv::VideoCapture* cap = reinterpret_cast<cv::VideoCapture*>(context);
     cap->set(CV_CAP_PROP_FRAME_WIDTH, width);
@@ -54,11 +50,8 @@ int cvcapture(void* context, void* buffer, size_t width, size_t height) {
     }
 
     (*cap) >> colour_image;
-    describe_image("colour", colour_image);
     cv::cvtColor(colour_image, greyscale_image, cv::COLOR_BGR2GRAY);
-    describe_image("greyscale", greyscale_image);
     cv::medianBlur(greyscale_image, denoised_image, 3);
-    describe_image("denoised", denoised_image);
     if (!denoised_image.isContinuous()) {
         return 0;
     }
