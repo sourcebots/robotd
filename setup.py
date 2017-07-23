@@ -15,12 +15,12 @@ setup(
     ],
     cffi_modules=[
         'robotd/native/libusb_build.py:ffibuilder',
+        'robotd/native/cvcapture_build.py:ffibuilder',
         'robotd/native/apriltag/apriltag_build.py:ffi',
     ],
     install_requires=[
         'pyudev',
         'pyserial',
-        'pygame',
         'Pillow',
         "cffi>=1.4.0",
         'numpy',

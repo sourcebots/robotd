@@ -21,11 +21,11 @@ class BoardRunner(multiprocessing.Process):
         """Constructor from a given `Board`."""
         super().__init__(**kwargs)
         self.board = board
-        self.socket_path = Path("{}robotd/{}/{}".format(
-            root_dir,
-            type(board).board_type_id,
-            board.name(board.node),
-        ))
+        self.socket_path = (
+            self.root_dir /
+            type(board).board_type_id /
+            board.name(board.node)
+        )
         try:
             self.socket_path.parent.mkdir(parents=True)
         except FileExistsError:
@@ -166,7 +166,7 @@ class MasterProcess(object):
         """Standard constructor."""
         self.runners = collections.defaultdict(dict)
         self.context = pyudev.Context()
-        self.root_dir = root_dir
+        self.root_dir = Path(root_dir)
 
     def tick(self):
         """Poll udev for any new or missing boards."""
@@ -230,14 +230,21 @@ def main(**kwargs):
 
 
 if __name__ == '__main__':
-
     # Parse terminal arguments
     import argparse
     parser = argparse.ArgumentParser()
 
-    default_root_dir = "/var/"
-    parser.add_argument("--root_dir", help="""directory to run root of robotd at (defaults to {})""".format(default_root_dir),
-                        default=default_root_dir)
+    default_root_dir = Path("/var/robotd")
+    parser.add_argument(
+        "--root-dir",
+        type=Path,
+        help="directory to run root of robotd at (defaults to {})".format(
+            default_root_dir,
+        ),
+        default=default_root_dir,
+    )
     args = parser.parse_args()
 
-    main(**vars(args))
+    main(
+        root_dir=args.root_dir,
+    )

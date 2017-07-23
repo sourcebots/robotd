@@ -114,7 +114,8 @@ class PowerBoard(Board):
 
     def start(self):
         """Open connection to peripheral."""
-        # I am so sorry
+        # We get the bus path to the device inferred from the DEVPATH
+        # from systemd.
         path = tuple(int(x) for x in (
             self.node['DEVPATH'].rsplit('-', 1)[-1].split('.')
         ))
