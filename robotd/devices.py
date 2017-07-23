@@ -106,7 +106,7 @@ class GameState(Board):
 
     def __init__(self):
         super().__init__({})
-        self.state = {'corner': 0, 'mode': 'development'}
+        self.state = {'zone': 0, 'mode': 'development'}
 
     @classmethod
     def name(cls, node):
