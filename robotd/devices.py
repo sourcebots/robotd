@@ -98,9 +98,7 @@ class BrainTemperatureSensor(Board):
 
 
 class GameState(Board):
-    """
-    State storage for the game. keeps a store of whet it is sent
-    """
+    """ State storage for the game, keeps a store of everything it has received """
 
     # define the name od the board
     board_type_id = 'game'
