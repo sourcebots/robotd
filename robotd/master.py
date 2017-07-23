@@ -225,7 +225,6 @@ def main(**kwargs):
 
 
 if __name__ == '__main__':
-
     # Parse terminal arguments
     import argparse
     parser = argparse.ArgumentParser()
