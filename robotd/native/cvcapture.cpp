@@ -2,28 +2,37 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <string>
 
 extern "C" {
-    int cvcapture(void* buffer, size_t width, size_t height);
+    void* cvopen(const char* path);
+    void cvclose(void* context);
+    int cvcapture(void* context, void* buffer, size_t width, size_t height);
 }
 
 #include "opencv2/opencv.hpp"
 
-static cv::VideoCapture* s_instance = NULL;
-
-static cv::VideoCapture* shared_instance() {
-    if (s_instance == NULL) {
-        s_instance = new cv::VideoCapture(1);
+void* cvopen(const char* path) {
+    cv::VideoCapture* context;
+    if (path) {
+        context = new cv::VideoCapture(std::string(path));
+    } else {
+        context = new cv::VideoCapture(0);
     }
-    return s_instance;
+    return reinterpret_cast<void*>(context);
+}
+
+void cvclose(void* context) {
+    cv::VideoCapture* cap = reinterpret_cast<cv::VideoCapture*>(context);
+    delete cap;
 }
 
 static void describe_image(const char* stage, const cv::Mat& mat) {
     fprintf(stderr, "%s: %d x %d\n", stage, mat.size().width, mat.size().height);
 }
 
-int cvcapture(void* buffer, size_t width, size_t height) {
-    cv::VideoCapture* cap = shared_instance();
+int cvcapture(void* context, void* buffer, size_t width, size_t height) {
+    cv::VideoCapture* cap = reinterpret_cast<cv::VideoCapture*>(context);
     cap->set(CV_CAP_PROP_FRAME_WIDTH, width);
     cap->set(CV_CAP_PROP_FRAME_HEIGHT, height);
     cap->set(CV_CAP_PROP_FOURCC, CV_FOURCC('B', 'G', 'R', 3));
