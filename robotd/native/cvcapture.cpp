@@ -19,6 +19,10 @@ void* cvopen(const char* path) {
     } else {
         context = new cv::VideoCapture(0);
     }
+    if (!context->isOpened()) {
+        delete context;
+        return NULL;
+    }
     return reinterpret_cast<void*>(context);
 }
 
