@@ -84,7 +84,7 @@ class Vision:
         """
         # get the PIL image from the camera
         img = self.camera.capture_image()
-        return img
+        return img.point(lambda x: 255 if x > 128 else 0)
 
     def process_image(self, img):
         """
