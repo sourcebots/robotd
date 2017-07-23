@@ -106,17 +106,17 @@ class GameState(Board):
 
     def __init__(self):
         super().__init__({})
-        self._state = {'corner': 0, 'mode': 'development'}
+        self.state = {'corner': 0, 'mode': 'development'}
 
     @classmethod
     def name(cls, node):
         return "state"
 
     def command(self, cmd):
-        self._state.update(cmd)
+        self.state.update(cmd)
 
     def status(self):
-        return self._state
+        return self.state
 
 
 class PowerBoard(Board):
