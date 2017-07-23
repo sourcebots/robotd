@@ -11,6 +11,7 @@ Build-Depends: debhelper (>= 9),
                python3-dev,
                python3-pil,
                libcv-dev,
+               libopencv-photo-dev,
                libusb-1.0-0-dev,
 Standards-Version: 3.9.6
 
@@ -22,6 +23,7 @@ Depends: ${misc:Depends},
          ${python3:Depends},
          libusb-1.0-0,
          libcv2.4,
+         libopencv-photo2.4,
 Description: Robot control daemon
  Vends UNIX sockets in /var/robotd for communicating with the various
  robotic peripherals.
