@@ -229,9 +229,10 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
 
-    default_root_dir = "/var/"
+    default_root_dir = Path("/var")
     parser.add_argument(
         "--root-dir",
+        type=Path,
         help="directory to run root of robotd at (defaults to {})".format(
             default_root_dir,
         ),
