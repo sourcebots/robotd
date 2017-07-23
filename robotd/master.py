@@ -23,7 +23,6 @@ class BoardRunner(multiprocessing.Process):
         self.board = board
         self.socket_path = (
             self.root_dir /
-            'robotd' /
             type(board).board_type_id /
             board.name(board.node)
         )
@@ -230,7 +229,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
 
-    default_root_dir = Path("/var")
+    default_root_dir = Path("/var/robotd")
     parser.add_argument(
         "--root-dir",
         type=Path,
