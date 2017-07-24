@@ -11,10 +11,10 @@ class CaptureDevice(object):
             )
         else:
             argument_c = _cvcapture.ffi.NULL
+        self.lock = threading.Lock()
         self.instance = _cvcapture.lib.cvopen(argument_c)
         if self.instance == _cvcapture.ffi.NULL:
             raise RuntimeError("Unable to open capture device")
-        self.lock = threading.Lock()
 
     def capture(self, width, height):
         if self.instance is None:
