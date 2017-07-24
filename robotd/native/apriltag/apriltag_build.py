@@ -18,7 +18,17 @@ with (base / 'apriltag_interface.c').open('r') as apriltag_interface:
             str(base / 'contrib' / 'april'),
             str(base / 'contrib' / 'april' / 'common'),
         ],
-        sources=[str(x) for x in source_files],
+        sources=[
+            str(x)
+            for x in source_files
+            if x.stem not in (
+                'tag16h5',
+                'tag25h7',
+                'tag25h9',
+                'tag36artoolkit',
+                'tag36h10',
+            )
+        ],
         extra_compile_args=['-std=c11'],
     )
 
