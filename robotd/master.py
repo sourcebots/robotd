@@ -229,7 +229,7 @@ def main(**kwargs):
         master.cleanup()
 
 
-if __name__ == '__main__':
+def main_cmdline():
     # Parse terminal arguments
     import argparse
     parser = argparse.ArgumentParser()
@@ -248,3 +248,7 @@ if __name__ == '__main__':
     main(
         root_dir=args.root_dir,
     )
+
+
+if __name__ == '__main__':
+    main_cmdline()
