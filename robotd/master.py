@@ -31,7 +31,7 @@ class BoardRunner(multiprocessing.Process):
         super().__init__(**kwargs)
         self.board = board
         self.socket_path = (
-            root_dir /
+            Path(root_dir) /
             type(board).board_type_id /
             board.name(board.node)
         )
