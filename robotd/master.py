@@ -14,8 +14,17 @@ import setproctitle
 from robotd.devices import BOARDS
 
 
+def _send(connection, message):
+    # Split the message into buf_size chunks
+    buf_size = BoardRunner.SOCK_BUFFER_SIZE
+    for msg in [message[i:i + buf_size] for i in range(0, len(message), buf_size)]:
+        connection.send(msg)
+
+
 class BoardRunner(multiprocessing.Process):
     """Control process for one board."""
+
+    SOCK_BUFFER_SIZE = 2048
 
     def __init__(self, board, root_dir, **kwargs):
         """Constructor from a given `Board`."""
@@ -73,7 +82,7 @@ class BoardRunner(multiprocessing.Process):
 
             for connection in list(connections):
                 try:
-                    connection.send(msg)
+                    _send(connection, msg)
                 except ConnectionRefusedError:
                     pass
                 else:
@@ -102,9 +111,7 @@ class BoardRunner(multiprocessing.Process):
                 connections.append(new_connection)
                 print("new connection opened at {}".format(self.socket_path))
                 print("Sending welcome msg:", self.board.status())
-                new_connection.send((
-                                        json.dumps(self.board.status()) + '\n'
-                                    ).encode('utf-8'))
+                _send(new_connection, (json.dumps(self.board.status()) + '\n').encode('utf-8'))
 
             dead_connections = []
 
