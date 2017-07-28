@@ -15,7 +15,7 @@ class BoardMeta(type):
     def __new__(cls, name, bases, dict):
         """Instantiate subclass."""
         cls = type.__new__(cls, name, bases, dict)
-        if hasattr(cls, 'lookup_keys') and cls.enabled:
+        if (hasattr(cls, 'lookup_keys') or cls.create_on_startup) and cls.enabled:
             BoardMeta.BOARDS.append(cls)
         return cls
 
@@ -52,6 +52,7 @@ class Board(metaclass=BoardMeta):
     """
 
     enabled = True
+    create_on_startup = False
 
     @classmethod
     def name(cls, node):

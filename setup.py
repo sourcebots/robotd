@@ -23,5 +23,10 @@ setup(
         "cffi>=1.4.0",
         'setproctitle',
     ],
+    entry_points={
+        'console_scripts': [
+            'robotd = robotd.master:main_cmdline',
+        ],
+    },
     zip_safe=False,
 )

@@ -14,15 +14,24 @@ import setproctitle
 from robotd.devices import BOARDS
 
 
+def _send(connection, message):
+    # Split the message into buf_size chunks
+    buf_size = BoardRunner.SOCK_BUFFER_SIZE
+    for msg in [message[i:i + buf_size] for i in range(0, len(message), buf_size)]:
+        connection.send(msg)
+
+
 class BoardRunner(multiprocessing.Process):
     """Control process for one board."""
+
+    SOCK_BUFFER_SIZE = 2048
 
     def __init__(self, board, root_dir, **kwargs):
         """Constructor from a given `Board`."""
         super().__init__(**kwargs)
         self.board = board
         self.socket_path = (
-            self.root_dir /
+            Path(root_dir) /
             type(board).board_type_id /
             board.name(board.node)
         )
@@ -43,6 +52,7 @@ class BoardRunner(multiprocessing.Process):
         * Pass on commands to the `board`,
         * Call `make_safe` whenever the last user disconnects,
         * Deal with error handling and shutdown.
+
         """
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
 
@@ -72,7 +82,7 @@ class BoardRunner(multiprocessing.Process):
 
             for connection in list(connections):
                 try:
-                    connection.send(msg)
+                    _send(connection, msg)
                 except ConnectionRefusedError:
                     pass
                 else:
@@ -84,9 +94,13 @@ class BoardRunner(multiprocessing.Process):
         self.board.start()
 
         while True:
+            # Wait until one of the sockets is ready to read.
             (readable, _, errorable) = select.select(
+                # connections that want to read
                 [sock] + connections,
+                # connections that want to write
                 [],
+                # connections that want to error
                 connections,
             )
 
@@ -97,9 +111,7 @@ class BoardRunner(multiprocessing.Process):
                 connections.append(new_connection)
                 print("new connection opened at {}".format(self.socket_path))
                 print("Sending welcome msg:", self.board.status())
-                new_connection.send((
-                                        json.dumps(self.board.status()) + '\n'
-                                    ).encode('utf-8'))
+                _send(new_connection, (json.dumps(self.board.status()) + '\n').encode('utf-8'))
 
             dead_connections = []
 
@@ -163,11 +175,17 @@ class MasterProcess(object):
         self.context = pyudev.Context()
         self.root_dir = Path(root_dir)
 
+        # Init the startup boards
+        for board_type in BOARDS:
+            if board_type.create_on_startup:
+                self._start_board_instance(board_type, 'startup')
+
     def tick(self):
         """Poll udev for any new or missing boards."""
         for board_type in BOARDS:
-            nodes = self.context.list_devices(**board_type.lookup_keys)
-            self._process_device_list(board_type, nodes)
+            if hasattr(board_type, 'lookup_keys'):
+                nodes = self.context.list_devices(**board_type.lookup_keys)
+                self._process_device_list(board_type, nodes)
 
     def cleanup(self):
         """Shut down all the controllers."""
@@ -195,10 +213,7 @@ class MasterProcess(object):
                     board_type.name(nodes_by_path[new_device]),
                 ),
             )
-            instance = board_type(nodes_by_path[new_device])
-            runner = BoardRunner(instance, self.root_dir)
-            runner.start()
-            self.runners[board_type][new_device] = runner
+            self._start_board_instance(board_type, new_device, node=nodes_by_path[new_device])
 
         for dead_device in missing_paths:
             print("Disconnected %s: %s" % (board_type.__name__, dead_device))
@@ -207,6 +222,12 @@ class MasterProcess(object):
             runner.join()
             runner.cleanup()
             del self.runners[board_type][dead_device]
+
+    def _start_board_instance(self, board_type, new_device, **kwargs):
+        instance = board_type(**kwargs)
+        runner = BoardRunner(instance, self.root_dir)
+        runner.start()
+        self.runners[board_type][new_device] = runner
 
 
 def main(**kwargs):
@@ -224,7 +245,7 @@ def main(**kwargs):
         master.cleanup()
 
 
-if __name__ == '__main__':
+def main_cmdline():
     # Parse terminal arguments
     import argparse
     parser = argparse.ArgumentParser()
@@ -243,3 +264,7 @@ if __name__ == '__main__':
     main(
         root_dir=args.root_dir,
     )
+
+
+if __name__ == '__main__':
+    main_cmdline()
