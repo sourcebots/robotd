@@ -4,11 +4,10 @@ from threading import Lock, Thread, Event
 
 import serial
 
+from sb_vision import Camera as VisionCamera, Vision
 from robotd import usb
 from robotd.devices_base import Board, BoardMeta
 from robotd.game_specific import MARKER_SIZES
-from robotd.vision.camera import Camera as VisionCamera
-from robotd.vision.vision import Vision
 
 
 class MotorBoard(Board):

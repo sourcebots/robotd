@@ -15,15 +15,12 @@ setup(
     ],
     cffi_modules=[
         'robotd/native/libusb_build.py:ffibuilder',
-        'robotd/native/cvcapture_build.py:ffibuilder',
-        'robotd/native/apriltag/apriltag_build.py:ffi',
     ],
     install_requires=[
+        'sb-vision',
         'pyudev',
         'pyserial',
-        'Pillow',
         "cffi>=1.4.0",
-        'numpy',
         'setproctitle',
     ],
     zip_safe=False,
