@@ -236,5 +236,35 @@ class Camera(Board):
         pass
 
 
+class ServoAssembly(Board):
+    lookup_keys = {
+        'subsystem': 'tty',
+        'ID_VENDOR': 'Arduino_LLC',
+    }
+
+    @classmethod
+    def included(cls, node):
+        return node['ID_MODEL'].startswith('Arduino')
+
+    @classmethod
+    def name(cls, node):
+        """Board name."""
+        return node['ID_SERIAL_SHORT']
+
+    def start(self):
+        device = self.node['DEVNAME']
+        self.connection = serial.Serial(device, baudrate=115200)
+        self.make_safe()
+
+    def make_safe(self):
+        pass
+
+    def status(self):
+        return {}
+
+    def command(self, cmd):
+        pass
+
+
 # Grab the full list of boards from the workings of the metaclass
 BOARDS = BoardMeta.BOARDS
