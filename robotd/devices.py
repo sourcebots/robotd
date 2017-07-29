@@ -242,6 +242,8 @@ class ServoAssembly(Board):
         'ID_VENDOR': 'Arduino_LLC',
     }
 
+    NUM_SERVOS = 16
+
     @classmethod
     def included(cls, node):
         return node['ID_MODEL'].startswith('Arduino')
@@ -254,10 +256,33 @@ class ServoAssembly(Board):
     def start(self):
         device = self.node['DEVNAME']
         self.connection = serial.Serial(device, baudrate=115200)
+        self.fw_version = self._command('version')
         self.make_safe()
 
+    def _command(self, *args):
+        line = ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
+        self.connection.write(line)
+        self.connection.flush()
+
+        results = []
+
+        while True:
+            line = self.connection.readline()
+
+            if line.startswith(b'+ '):
+                return results
+            elif line.startswith(b'- '):
+                raise RuntimeError(line[2:].decode('utf-8'))
+            elif line.startswith(b'# '):
+                continue  # Skip
+            elif line.startswith(b'> '):
+                results.append(line[2:].decode('utf-8'))
+            else:
+                raise RuntimeError("wtf is this")
+
     def make_safe(self):
-        pass
+        for servo in NUM_SERVOS:
+            self._command('servo', servo, 0)
 
     def status(self):
         return {}
