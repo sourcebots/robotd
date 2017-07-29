@@ -257,6 +257,7 @@ class ServoAssembly(Board):
         device = self.node['DEVNAME']
         self.connection = serial.Serial(device, baudrate=115200)
         self.fw_version = self._command('version')
+        self._servo_status = {}
         self.make_safe()
 
     def _command(self, *args):
@@ -281,14 +282,28 @@ class ServoAssembly(Board):
                 raise RuntimeError("wtf is this")
 
     def make_safe(self):
-        for servo in NUM_SERVOS:
-            self._command('servo', servo, 0)
+        for servo in range(NUM_SERVOS):
+            self._set_servo(servo, None)
+
+    def _set_servo(self, servo, status):
+        if status is None:
+            level = 0
+        elif 0 <= status <= 1:
+            level = 150 + int((550 - 150) * status)
+        self._command('servo', servo, level)
+        self._servo_status[str(servo)] = status
 
     def status(self):
-        return {}
+        return {
+            'servos': self._servo_status,
+            'fw-version': self.fw_version,
+        }
 
     def command(self, cmd):
-        pass
+        servos = cmd.get('servos', {})
+        for servo_id, status in servos.items():
+            self._set_servo(int(servo_id), status)
+
 
 
 # Grab the full list of boards from the workings of the metaclass
