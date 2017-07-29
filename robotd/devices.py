@@ -3,6 +3,7 @@ from pathlib import Path
 from threading import Lock, Thread, Event
 
 import serial
+import struct
 
 from sb_vision import Camera as VisionCamera, Vision
 from robotd import usb
@@ -159,11 +160,24 @@ class PowerBoard(Board):
                 command,
             )
 
+    """
+    The following code was written by someone with a vague understanding of Python...
+    I'm sorry.
+    """
+    def read_the_damn_button(self):
+        result = self.device.control_read(64, 0, 8, 4)
+        status, = struct.unpack("i",  result)
+
+        if status == 0:
+            return False
+        else:
+            return True
+
     def make_safe(self):
         self._set_power_outputs(0)
 
     def status(self):
-        return {}
+        return {"start-button" : self.read_the_damn_button()}
 
     def command(self, cmd):
         if 'power' in cmd:
