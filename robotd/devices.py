@@ -167,13 +167,13 @@ class PowerBoard(Board):
         # Extract the data we want
         status, = struct.unpack("i",  result)
 
-        return status !=0
+        return status != 0
 
     def make_safe(self):
         self._set_power_outputs(0)
 
     def status(self):
-        return {"start-button" : self.start_button_status()}
+        return {"start-button" : self.start_button_status}
 
     def command(self, cmd):
         if 'power' in cmd:
