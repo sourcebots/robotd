@@ -188,7 +188,7 @@ class Camera(Board):
 
     def start(self):
         self.camera = VisionCamera(
-            self.node['DEVPATH'],
+            self.node['DEVNAME'],
             self.IMAGE_SIZE,
             self.DISTANCE_MODEL,
         )
