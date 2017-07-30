@@ -284,7 +284,7 @@ class ServoAssembly(Board):
                     raise RuntimeError("wtf is this")
 
     def make_safe(self):
-        for servo in range(NUM_SERVOS):
+        for servo in range(self.NUM_SERVOS):
             self._set_servo(servo, None)
 
     def _set_servo(self, servo, status):
