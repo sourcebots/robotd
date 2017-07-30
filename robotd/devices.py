@@ -256,6 +256,7 @@ class ServoAssembly(Board):
         (self.fw_version,) = self._command('version')
         self._servo_status = {}
         self.make_safe()
+        print("Finished initialising servo assembly on {}".format(device))
 
     def _command(self, *args):
         while True:
