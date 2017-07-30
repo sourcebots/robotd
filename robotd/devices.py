@@ -239,19 +239,16 @@ class Camera(Board):
 class ServoAssembly(Board):
     lookup_keys = {
         'subsystem': 'tty',
-        'ID_VENDOR': 'Arduino_LLC',
+        'ID_VENDOR_ID': '1a86',
+        'ID_MODEL_ID': '7523',
     }
 
     NUM_SERVOS = 16
 
     @classmethod
-    def included(cls, node):
-        return node['ID_MODEL'].startswith('Arduino')
-
-    @classmethod
     def name(cls, node):
         """Board name."""
-        return node['ID_SERIAL_SHORT']
+        return 'SB_{}'.format(node['MINOR'])
 
     def start(self):
         device = self.node['DEVNAME']
