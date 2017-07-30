@@ -209,15 +209,13 @@ class Camera(Board):
     def vision_thread(self):
         self.stop_event.clear()
         while not self.stop_event.is_set():
-            image = self.vision.snapshot()
-            results = self.vision.process_image(image)
+            results = self.vision.snapshot()
             # print("Vision snapshot: ", results)
             self.latest_results = {"tokens": [x.__dict__ for x in results]}
             self.broadcast(self.latest_results)
 
     def start(self):
         """Open connection to peripheral."""
-        self.vision.init()
         self._status = {'status': 'initialised'}
         self.thread = Thread(target=self.vision_thread)
         self.thread.start()
