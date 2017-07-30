@@ -253,7 +253,7 @@ class ServoAssembly(Board):
     def start(self):
         device = self.node['DEVNAME']
         self.connection = serial.Serial(device, baudrate=115200)
-        self.fw_version = self._command('version')
+        (self.fw_version,) = self._command('version')
         self._servo_status = {}
         self.make_safe()
 
