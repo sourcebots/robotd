@@ -29,18 +29,62 @@ class BoardRunner(multiprocessing.Process):
     def __init__(self, board, root_dir, **kwargs):
         """Constructor from a given `Board`."""
         super().__init__(**kwargs)
+
         self.board = board
         self.socket_path = (
-            Path(root_dir) /
-            type(board).board_type_id /
-            board.name(board.node)
+            Path(root_dir) / type(board).board_type_id / board.name(board.node)
         )
+
+        self._prepare_socket_path()
+
+        self.connections = []
+
+    def _prepare_socket_path(self):
         try:
             self.socket_path.parent.mkdir(parents=True)
         except FileExistsError:
             if self.socket_path.exists():
                 print("Warning: removing old {}".format(self.socket_path))
-                self.socket_path.unlink()
+                self._delete_socket_path()
+
+    def _delete_socket_path(self):
+        try:
+            self.socket_path.unlink()
+        except FileNotFoundError:
+            pass
+
+    def _create_server_socket(self):
+        server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+
+        server_socket.bind(str(self.socket_path))
+        server_socket.listen(5)
+
+        self.socket_path.chmod(0o777)
+
+        setproctitle.setproctitle("robotd {}: {}".format(
+            type(self.board).board_type_id,
+            type(self.board).name(self.board.node),
+        ))
+
+        return server_socket
+
+    def broadcast(self, message):
+        message = dict(message)
+        message['broadcast'] = True
+
+        msg = (json.dumps(message) + '\n').encode('utf-8')
+
+        for connection in self.connections:
+            try:
+                _send(connection, msg)
+            except ConnectionRefusedError:
+                self.connections.remove(connection)
+
+    def _send_board_status(self, connection):
+        board_status = self.board.status()
+        print('Sending board status:', board_status)
+        message = (json.dumps(board_status) + '\n').encode('utf-8')
+        _send(new_connection, message)
 
     def run(self):
         """
@@ -52,71 +96,36 @@ class BoardRunner(multiprocessing.Process):
         * Pass on commands to the `board`,
         * Call `make_safe` whenever the last user disconnects,
         * Deal with error handling and shutdown.
-
         """
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
 
-        sock.bind(str(self.socket_path))
-        sock.listen(5)
+        server_socket = self._create_server_socket()
 
-        self.socket_path.chmod(0o777)
-
-        setproctitle.setproctitle("robotd {}: {}".format(
-            type(self.board).board_type_id,
-            type(self.board).name(self.board.node),
-        ))
-
-        connections = []
-
-        def broadcast(message):
-            nonlocal connections
-
-            message = dict(message)
-            message['broadcast'] = True
-
-            msg = (json.dumps(message) + '\n').encode('utf-8')
-
-            retained_connections = []
-
-            # print("Broadcasting:", msg)
-
-            for connection in list(connections):
-                try:
-                    _send(connection, msg)
-                except ConnectionRefusedError:
-                    pass
-                else:
-                    retained_connections.append(connection)
-
-            connections = retained_connections
-
-        self.board.broadcast = broadcast
+        self.board.broadcast = self.broadcast
         self.board.start()
 
         while True:
             # Wait until one of the sockets is ready to read.
-            (readable, _, errorable) = select.select(
+            readable, _, errorable = select.select(
                 # connections that want to read
-                [sock] + connections,
+                [server_socket] + self.connections,
                 # connections that want to write
                 [],
                 # connections that want to error
-                connections,
+                self.connections,
             )
 
             # New connections
-            if sock in readable:
-                (new_connection, _) = sock.accept()
+            if server_socket in readable:
+                new_connection, _ = server_socket.accept()
                 readable.append(new_connection)
-                connections.append(new_connection)
+                self.connections.append(new_connection)
                 print("new connection opened at {}".format(self.socket_path))
-                print("Sending welcome msg:", self.board.status())
-                _send(new_connection, (json.dumps(self.board.status()) + '\n').encode('utf-8'))
+                self._send_board_status(new_connection)
 
             dead_connections = []
 
             for source in readable:
-                if source not in connections:
+                if source not in self.connections:
                     continue
 
                 try:
@@ -136,22 +145,20 @@ class BoardRunner(multiprocessing.Process):
                 else:
                     if command != {}:
                         self.board.command(command)
-                    print("Sending response:", json.dumps(self.board.status()))
-                    source.send((
-                                    json.dumps(self.board.status()) + '\n'
-                                ).encode('utf-8'))
+                    self._send_board_status(new_connection)
 
-            for source in errorable:
-                print("err? ", source)
-                dead_connections.append(source)
+            dead_connections.extend(errorable)
 
-            for dead_connection in dead_connections:
-                dead_connection.close()
-                connections.remove(dead_connection)
+            self._close_dead_connections(dead_connections)
 
-            if dead_connections and not connections:
+            if dead_connections and not self.connections:
                 print("Last connection closed")
                 self.board.make_safe()
+
+    def _close_dead_connections(self, dead_connections):
+        for connection in dead_connections:
+            connection.close()
+            self.connections.remove(connection)
 
     def cleanup(self):
         """
@@ -159,10 +166,8 @@ class BoardRunner(multiprocessing.Process):
 
         Called from the parent process.
         """
-        try:
-            self.socket_path.unlink()
-        except FileNotFoundError:
-            pass
+
+        self._delete_socket_path()
         self.board.stop()
 
 
