@@ -252,31 +252,36 @@ class ServoAssembly(Board):
 
     def start(self):
         device = self.node['DEVNAME']
-        self.connection = serial.Serial(device, baudrate=115200)
+        self.connection = serial.Serial(device, baudrate=115200, timeout=1)
         (self.fw_version,) = self._command('version')
         self._servo_status = {}
         self.make_safe()
 
     def _command(self, *args):
-        line = ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
-        self.connection.write(line)
-        self.connection.flush()
-
-        results = []
-
         while True:
-            line = self.connection.readline()
+            line = ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
+            self.connection.write(line)
+            self.connection.flush()
 
-            if line.startswith(b'+ '):
-                return results
-            elif line.startswith(b'- '):
-                raise RuntimeError(line[2:].decode('utf-8'))
-            elif line.startswith(b'# '):
-                continue  # Skip
-            elif line.startswith(b'> '):
-                results.append(line[2:].decode('utf-8'))
-            else:
-                raise RuntimeError("wtf is this")
+            results = []
+
+            while True:
+                line = self.connection.readline()
+
+                if not line:
+                    # Leave the loop and reissue the command
+                    break
+
+                if line.startswith(b'+ '):
+                    return results
+                elif line.startswith(b'- '):
+                    raise RuntimeError(line[2:].decode('utf-8'))
+                elif line.startswith(b'# '):
+                    continue  # Skip
+                elif line.startswith(b'> '):
+                    results.append(line[2:].decode('utf-8'))
+                else:
+                    raise RuntimeError("wtf is this")
 
     def make_safe(self):
         for servo in range(NUM_SERVOS):
