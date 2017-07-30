@@ -174,60 +174,39 @@ class PowerBoard(Board):
 class Camera(Board):
     """Camera"""
 
-    # TODO Get the serial from the USB connection so we can handle 2 cameras without an issue
-    # ...(This might not even be possible if the cameras are the same model)
     lookup_keys = {
         'subsystem': 'video4linux',
     }
 
-    def __init__(self, node, camera=None, token_sizes=None):
-        super().__init__(node)
-        # TODO do not hard-code this, detect from which camera is being used
-        if camera is None:
-            CAM_IMAGE_SIZE = (1280, 720)
-            FOCAL_DISTANCE = 720
-            camera = VisionCamera(self.node['DEVNAME'], CAM_IMAGE_SIZE, FOCAL_DISTANCE)
-        if token_sizes is None:
-            self.token_sizes = MARKER_SIZES
-        else:
-            self.token_sizes = token_sizes
-        self.thread = None
-        self.vision = self._create_vision(camera)
-        self.stop_event = Event()
-        self.latest_results = []
-        self._status = {'status': 'uninitialised'}
-
-    @staticmethod
-    def _create_vision(camera):
-        return Vision(camera, MARKER_SIZES)
+    DISTANCE_MODEL = 'c270'
+    IMAGE_SIZE = (1280, 720)
 
     @classmethod
     def name(cls, node):
         # Get device name
         return Path(node['DEVNAME']).stem
 
-    def vision_thread(self):
-        self.stop_event.clear()
-        while not self.stop_event.is_set():
-            results = self.vision.snapshot()
-            # print("Vision snapshot: ", results)
-            self.latest_results = {"tokens": [x.__dict__ for x in results]}
-            self.broadcast(self.latest_results)
-
     def start(self):
-        """Open connection to peripheral."""
-        self._status = {'status': 'initialised'}
-        self.thread = Thread(target=self.vision_thread)
-        self.thread.start()
+        self.camera = Camera(
+            Path(self.node['DEVPATH']),
+            self.IMAGE_SIZE,
+            self.DISTANCE_MODEL,
+        )
+        self.vision = Vision(self.camera)
 
-    def stop(self):
-        self.stop_event.set()
-        if self.thread:
-            self.thread.join()
+        self._status = {'markers': []}
+
+        self.vision_thread = Thread(target=self._vision_thread)
+        self.vision_thread.start()
+
+    def _vision_thread(self):
+        while True:
+            latest = list(self.vision.snapshot())
+            self._status['markers'] = latest
+            self.broadcast(self._status)
 
     def status(self):
-        """Get latest image results"""
-        return {}
+        return self._status
 
     def command(self, cmd):
         """Run user-provided command."""
