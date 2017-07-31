@@ -256,16 +256,21 @@ class MasterProcess(object):
         self.runners[board_type][new_device] = runner
 
     def launch_monitor(self):
-        self.monitor_stop_event = threading.Event()
+        self.monitor_stop_flag = False
         self.monitor_thread = threading.Thread(target=self._monitor_thread)
         self.monitor_thread.start()
 
     def stop_monitor(self):
-        self.monitor_stop_event.set()
+        self.monitor_stop_flag = True
         self.monitor_thread.join()
 
     def _monitor_thread(self):
-        while self.monitor_stop_event.wait(0.5):
+        while True:
+            if self.monitor_stop_flag:
+                return
+
+            time.sleep(0.5)
+
             with self.runners_lock:
                 for board_type, runners in list(self.runners.items()):
                     for device_id, runner_process in list(runners.items()):
