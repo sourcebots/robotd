@@ -275,7 +275,10 @@ class ServoAssembly(Board):
                 if line.startswith(b'+ '):
                     return results
                 elif line.startswith(b'- '):
-                    raise RuntimeError(line[2:].decode('utf-8') + '\n' + '\n'.join(comments))
+                    if b'unknown command' in line:
+                        break  # try again
+                    else:
+                        raise RuntimeError(line[2:].decode('utf-8') + '\n' + '\n'.join(comments))
                 elif line.startswith(b'# '):
                     comments.append(line[2:].decode('utf-8').strip())
                 elif line.startswith(b'> '):
