@@ -37,7 +37,7 @@ class Connection:
         line = self.data.split(b'\n', 1)[0]
         self.data = self.data[len(line) + 1:]
 
-        return json.loads(line)
+        return json.loads(line.decode('utf-8'))
 
 
 class BoardRunner(multiprocessing.Process):
