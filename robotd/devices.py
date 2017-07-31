@@ -234,7 +234,7 @@ class ServoAssembly(Board):
     NUM_SERVOS = 16
     GPIO_IDS = range(2, 13)
 
-    INPUT = b'hi-z'
+    INPUT = 'hi-z'
 
     @classmethod
     def name(cls, node):
@@ -301,10 +301,10 @@ class ServoAssembly(Board):
 
     def _write_pin(self, pin, setting):
         self._pin_status[pin] = setting
-        return self._command(b'gpio-write', str(pin).encode('utf-8'), setting)
+        return self._command('gpio-write', str(pin), setting)
 
     def _read_pin(self, pin):
-        result = self._command(b'gpio-read', str(pin).encode('utf-8'))
+        result = self._command('gpio-read', str(pin))
         self._pin_values.update({pin: result})
 
     def status(self):
