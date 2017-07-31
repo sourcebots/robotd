@@ -291,8 +291,11 @@ class ServoAssembly(Board):
             # Adjust to be in the range 0-1
             status_unit = (status + 1) / 2
             level = 150 + int((550 - 150) * status_unit)
+        else:
+            return
+
         self._command('servo', servo, level)
-        self._servo_status[str(servo)] = status_unit
+        self._servo_status[str(servo)] = level
 
     def _write_pin(self, pin, setting):
         self._pin_status[pin] = setting
