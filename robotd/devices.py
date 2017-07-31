@@ -243,7 +243,7 @@ class ServoAssembly(Board):
 
     def start(self):
         device = self.node['DEVNAME']
-        self.connection = serial.Serial(device, baudrate=115200, timeout=0.2)
+        self.connection = serial.Serial(device, baudrate=9600, timeout=0.2)
         (self.fw_version,) = self._command('version')
         self.fw_version = self.fw_version.strip()
         self._servo_status = {}
