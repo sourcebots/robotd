@@ -249,6 +249,8 @@ class ServoAssembly(Board):
         self._servo_status = {}
         self._pin_status = {}
         self._pin_values = {}
+        self._analogue_values = {}
+        self._ultrasound_value = None
         self.make_safe()
         print("Finished initialising servo assembly on {}".format(device))
 
@@ -302,11 +304,21 @@ class ServoAssembly(Board):
 
     def _write_pin(self, pin, setting):
         self._pin_status[pin] = setting
-        return self._command('gpio-write', str(pin), setting)
+        return self._command('gpio-write', pin, setting)
 
     def _read_pin(self, pin):
-        result = self._command('gpio-read', str(pin))[0]
+        result = self._command('gpio-read', pin)[0]
         self._pin_values.update({pin: result})
+
+    def _read_analogue(self):
+        results = self._command('analogue-read')
+        for result in results:
+            name, value = result.split(' ')
+            self._analogue_values.update({name: value})
+
+    def _read_ultrasound(self, trigger_pin, echo_pin):
+        result = self._command('ultrasound-read', trigger_pin, echo_pin)[0]
+        self._ultrasound_value = float(result)
 
     def status(self):
         return {
@@ -314,6 +326,8 @@ class ServoAssembly(Board):
             'pins': self._pin_status,
             'pin-values': self._pin_values,
             'fw-version': self.fw_version,
+            'analogue-values': self._analogue_values,
+            'ultrasound': self._ultrasound_value,
         }
 
     def command(self, cmd):
@@ -333,6 +347,20 @@ class ServoAssembly(Board):
         pins = cmd.get('read-pins', [])
         for pin in pins:
             self._read_pin(int(pin))
+
+        # handle reading analogue pins
+        self._analogue_values = {}
+
+        read_analogue = cmd.get('read-analogue', False)
+        if read_analogue:
+            self._read_analogue()
+
+        # handle ultrasound
+        self._ultrasound_value = None
+
+        read_ultrasound = cmd.get('read-ultrasound', [])
+        if len(read_ultrasound) == 2:
+            self._read_ultrasound(read_ultrasound[0], read_ultrasound[1])
 
 
 # Grab the full list of boards from the workings of the metaclass
