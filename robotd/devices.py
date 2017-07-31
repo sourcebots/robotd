@@ -275,9 +275,9 @@ class ServoAssembly(Board):
                 elif line.startswith(b'- '):
                     raise RuntimeError(line[2:].decode('utf-8') + '\n' + '\n'.join(comments))
                 elif line.startswith(b'# '):
-                    comments.append(line[2:].decode('utf-8'))
+                    comments.append(line[2:].decode('utf-8').strip())
                 elif line.startswith(b'> '):
-                    results.append(line[2:].decode('utf-8'))
+                    results.append(line[2:].decode('utf-8').strip())
                 else:
                     raise RuntimeError("wtf is this")
 
@@ -305,7 +305,7 @@ class ServoAssembly(Board):
         return self._command('gpio-write', str(pin), setting)
 
     def _read_pin(self, pin):
-        result = self._command('gpio-read', str(pin))
+        result = self._command('gpio-read', str(pin))[0]
         self._pin_values.update({pin: result})
 
     def status(self):
