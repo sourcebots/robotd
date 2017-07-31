@@ -282,6 +282,9 @@ class ServoAssembly(Board):
             level = 0
         elif 0 <= status <= 1:
             level = 150 + int((550 - 150) * status)
+        else:
+            return
+
         self._command('servo', servo, level)
         self._servo_status[str(servo)] = status
 
