@@ -212,7 +212,7 @@ class Camera(Board):
 
     def _vision_thread(self):
         while True:
-            latest = list(self.vision.snapshot())
+            latest = [x.__dict__ for x in self.vision.snapshot()]
             self._status['markers'] = latest
             self.broadcast(self._status)
 
@@ -232,6 +232,9 @@ class ServoAssembly(Board):
     }
 
     NUM_SERVOS = 16
+    GPIO_IDS = range(2, 13)
+
+    INPUT = b'hi-z'
 
     @classmethod
     def name(cls, node):
@@ -244,6 +247,8 @@ class ServoAssembly(Board):
         (self.fw_version,) = self._command('version')
         self.fw_version = self.fw_version.strip()
         self._servo_status = {}
+        self._pin_status = {}
+        self._pin_values = {}
         self.make_safe()
         print("Finished initialising servo assembly on {}".format(device))
 
@@ -276,29 +281,46 @@ class ServoAssembly(Board):
     def make_safe(self):
         for servo in range(self.NUM_SERVOS):
             self._set_servo(servo, None)
+        for pin in self.GPIO_IDS:
+            self._write_pin(pin, self.INPUT)
 
     def _set_servo(self, servo, status):
         if status is None:
             level = 0
-        elif 0 <= status <= 1:
-            level = 150 + int((550 - 150) * status)
-        else:
-            return
-
+        elif -1 <= status <= 1:
+            # Adjust to be in the range 0-1
+            status_unit = (status + 1) / 2
+            level = 150 + int((550 - 150) * status_unit)
         self._command('servo', servo, level)
-        self._servo_status[str(servo)] = status
+        self._servo_status[str(servo)] = status_unit
+
+    def _write_pin(self, pin, setting):
+        self._pin_status[pin] = setting
+        return self._command(b'gpio-write', str(pin).encode('utf-8'), setting)
+
+    def _read_pin(self, pin):
+        result = self._command(b'gpio-read', str(pin).encode('utf-8'))
+        self._pin_values.update({pin: result})
 
     def status(self):
         return {
             'servos': self._servo_status,
+            'pins': self._pin_status,
+            'pin-values': self._pin_values,
             'fw-version': self.fw_version,
         }
 
     def command(self, cmd):
         servos = cmd.get('servos', {})
+        pins = cmd.get('pins', {})
+        self._pin_values = {}
         for servo_id, status in servos.items():
             self._set_servo(int(servo_id), status)
-
+        for pin, status in pins.items():
+            if status is None:
+                self._read_pin(int(pin))
+            else:
+                self._write_pin(int(pin), status)
 
 
 # Grab the full list of boards from the workings of the metaclass
