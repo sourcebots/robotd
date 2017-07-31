@@ -161,7 +161,7 @@ class PowerBoard(Board):
             )
 
     def _set_start_led(self, value):
-        self.device.control_write(64, 0, value, 6, 0)
+        self.device.control_write(64, value, 6)
 
     @property
     def start_button_status(self):
@@ -180,7 +180,7 @@ class PowerBoard(Board):
             self._set_power_outputs(1 if power else 0)
         elif 'start-led' in cmd:
             value = bool(cmd['start-led'])
-            self._set_start_led(value)
+            self._set_start_led(1 if value else 0)
 
 
 class Camera(Board):
