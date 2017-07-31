@@ -274,9 +274,11 @@ class MasterProcess(object):
             with self.runners_lock:
                 for board_type, runners in list(self.runners.items()):
                     for device_id, runner_process in list(runners.items()):
-                        status = runner_process.poll()
-
-                        if status is not None:
+                        if not runner_process.is_alive():
+                            print("Dead worker: {}({})".format(
+                                board_type,
+                                device_id,
+                            ))
                             # This worker has died and needs to be reaped
                             del self.runners[board_type][device_id]
 
