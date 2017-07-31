@@ -317,16 +317,22 @@ class ServoAssembly(Board):
         }
 
     def command(self, cmd):
+        # handle servos
         servos = cmd.get('servos', {})
-        pins = cmd.get('pins', {})
-        self._pin_values = {}
         for servo_id, status in servos.items():
             self._set_servo(int(servo_id), status)
+
+        # handle writing pins
+        pins = cmd.get('pins', {})
         for pin, status in pins.items():
-            if status is None:
-                self._read_pin(int(pin))
-            else:
-                self._write_pin(int(pin), status)
+            self._write_pin(int(pin), status)
+
+        # handle reading pins
+        self._pin_values = {}
+
+        pins = cmd.get('read-pins', [])
+        for pin in pins:
+            self._read_pin(int(pin))
 
 
 # Grab the full list of boards from the workings of the metaclass
