@@ -163,10 +163,7 @@ class PowerBoard(Board):
     @property
     def start_button_status(self):
         result = self.device.control_read(64, 0, 8, 4)
-        print('Start button status:', result)
-        status, = struct.unpack('i',  result)
-
-        return status != 0
+        return any(result)
 
     def make_safe(self):
         self._set_power_outputs(0)
