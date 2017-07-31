@@ -258,6 +258,8 @@ class ServoAssembly(Board):
             self.connection.write(line)
             self.connection.flush()
 
+            print('Sending to servo assembly:', line)
+
             results = []
 
             while True:
