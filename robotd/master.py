@@ -7,6 +7,7 @@ import select
 import socket
 import time
 from pathlib import Path
+import threading
 
 import pyudev
 import setproctitle
@@ -196,6 +197,8 @@ class MasterProcess(object):
         self.context = pyudev.Context()
         self.root_dir = Path(root_dir)
 
+        self.runners_lock = threading.Lock()
+
         # Init the startup boards
         for board_type in BOARDS:
             if board_type.create_on_startup:
@@ -212,43 +215,65 @@ class MasterProcess(object):
         """Shut down all the controllers."""
         for board_type in BOARDS:
             self._process_device_list(board_type, [])
+        self.stop_monitor()
 
     def _process_device_list(self, board_type, nodes):
-        nodes_by_path = {
-            x.device_path: x
-            for x in nodes
-            if board_type.included(x)
-        }
+        with self.runners_lock:
+            nodes_by_path = {
+                x.device_path: x
+                for x in nodes
+                if board_type.included(x)
+            }
 
-        actual_paths = set(nodes_by_path.keys())
-        expected_paths = set(self.runners[board_type].keys())
+            actual_paths = set(nodes_by_path.keys())
+            expected_paths = set(self.runners[board_type].keys())
 
-        missing_paths = expected_paths - actual_paths
-        new_paths = actual_paths - expected_paths
+            missing_paths = expected_paths - actual_paths
+            new_paths = actual_paths - expected_paths
 
-        for new_device in new_paths:
-            print(
-                "Detected new %s: %s (%s)" % (
-                    board_type.__name__,
-                    new_device,
-                    board_type.name(nodes_by_path[new_device]),
-                ),
-            )
-            self._start_board_instance(board_type, new_device, node=nodes_by_path[new_device])
+            for new_device in new_paths:
+                print(
+                    "Detected new %s: %s (%s)" % (
+                        board_type.__name__,
+                        new_device,
+                        board_type.name(nodes_by_path[new_device]),
+                    ),
+                )
+                self._start_board_instance(board_type, new_device, node=nodes_by_path[new_device])
 
-        for dead_device in missing_paths:
-            print("Disconnected %s: %s" % (board_type.__name__, dead_device))
-            runner = self.runners[board_type][dead_device]
-            runner.terminate()
-            runner.join()
-            runner.cleanup()
-            del self.runners[board_type][dead_device]
+            for dead_device in missing_paths:
+                print("Disconnected %s: %s" % (board_type.__name__, dead_device))
+                runner = self.runners[board_type][dead_device]
+                runner.terminate()
+                runner.join()
+                runner.cleanup()
+                del self.runners[board_type][dead_device]
 
     def _start_board_instance(self, board_type, new_device, **kwargs):
         instance = board_type(**kwargs)
         runner = BoardRunner(instance, self.root_dir)
         runner.start()
         self.runners[board_type][new_device] = runner
+
+    def launch_monitor(self):
+        self.monitor_stop_event = threading.Event()
+        self.monitor_thread = threading.Thread(target=self._monitor_thread)
+        self.monitor_thread.start()
+
+    def stop_monitor(self):
+        self.monitor_stop_event.set()
+        self.monitor_thread.join()
+
+    def _monitor_thread(self):
+        while self.monitor_stop_event.wait(0.5):
+            with self.runners_lock:
+                for board_type, runners in list(self.runners.items()):
+                    for device_id, runner_process in list(runners.items()):
+                        status = runner_process.poll()
+
+                        if status is not None:
+                            # This worker has died and needs to be reaped
+                            del self.runners[board_type][device_id]
 
 
 def main(**kwargs):
@@ -257,6 +282,7 @@ def main(**kwargs):
 
     setproctitle.setproctitle("robotd master")
 
+    master.launch_monitor()
     try:
         while True:
             master.tick()
