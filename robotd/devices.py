@@ -260,6 +260,7 @@ class ServoAssembly(Board):
 
             print('Sending to servo assembly:', line)
 
+            comments = []
             results = []
 
             while True:
@@ -272,9 +273,9 @@ class ServoAssembly(Board):
                 if line.startswith(b'+ '):
                     return results
                 elif line.startswith(b'- '):
-                    raise RuntimeError(line[2:].decode('utf-8'))
+                    raise RuntimeError(line[2:].decode('utf-8') + '\n' + '\n'.join(comments))
                 elif line.startswith(b'# '):
-                    continue  # Skip
+                    comments.append(line[2:].decode('utf-8'))
                 elif line.startswith(b'> '):
                     results.append(line[2:].decode('utf-8'))
                 else:
