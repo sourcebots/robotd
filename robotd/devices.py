@@ -326,7 +326,7 @@ class ServoAssembly(Board):
             result = self._command('ultrasound-read', trigger_pin, echo_pin)[0]
             found_values.append(float(result))
 
-        self._ultrasound_value = list(sorted(found_values))[1] / 10000.0
+        self._ultrasound_value = list(sorted(found_values))[1] / 1000.0
 
     def status(self):
         return {
