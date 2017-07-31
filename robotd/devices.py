@@ -3,6 +3,7 @@ from pathlib import Path
 from threading import Lock, Thread, Event
 
 import serial
+import struct
 
 from sb_vision import Camera as VisionCamera, Vision
 from robotd import usb
@@ -159,11 +160,20 @@ class PowerBoard(Board):
                 command,
             )
 
+    @property
+    def start_button_status(self):
+        # Get the status of the powerboard
+        result = self.device.control_read(64, 0, 8, 4)
+        # Extract the data we want
+        status, = struct.unpack("i",  result)
+
+        return status != 0
+
     def make_safe(self):
         self._set_power_outputs(0)
 
     def status(self):
-        return {}
+        return {"start-button" : self.start_button_status}
 
     def command(self, cmd):
         if 'power' in cmd:
