@@ -246,6 +246,7 @@ class ServoAssembly(Board):
         device = self.node['DEVNAME']
         self.connection = serial.Serial(device, baudrate=115200, timeout=0.2)
         (self.fw_version,) = self._command('version')
+        self.fw_version = self.fw_version.strip()
         self._servo_status = {}
         self.make_safe()
         print("Finished initialising servo assembly on {}".format(device))
