@@ -14,33 +14,93 @@ import setproctitle
 from robotd.devices import BOARDS
 
 
-def _send(connection, message):
-    # Split the message into buf_size chunks
-    buf_size = BoardRunner.SOCK_BUFFER_SIZE
-    for msg in [message[i:i + buf_size] for i in range(0, len(message), buf_size)]:
-        connection.send(msg)
+class Connection:
+
+    def __init__(self, socket):
+        self.socket = socket
+        self.data = b''
+
+    def close(self):
+        self.socket.close()
+
+    def send(self, message):
+        line = json.dumps(message).encode('utf-8') + b'\n'
+        self.socket.sendall(line)
+
+    def receive(self):
+        while b'\n' not in self.data:
+            message = self.socket.recv(4096)
+            if message == b'':
+                return None
+
+            self.data += message
+        line = self.data.split(b'\n', 1)[0]
+        self.data = self.data[len(line) + 1:]
+
+        return json.loads(line)
 
 
 class BoardRunner(multiprocessing.Process):
     """Control process for one board."""
 
-    SOCK_BUFFER_SIZE = 2048
-
     def __init__(self, board, root_dir, **kwargs):
         """Constructor from a given `Board`."""
         super().__init__(**kwargs)
+
         self.board = board
         self.socket_path = (
-            Path(root_dir) /
-            type(board).board_type_id /
-            board.name(board.node)
+            Path(root_dir) / type(board).board_type_id / board.name(board.node)
         )
+
+        self._prepare_socket_path()
+
+        self.connections = {}
+
+    def _prepare_socket_path(self):
         try:
             self.socket_path.parent.mkdir(parents=True)
         except FileExistsError:
             if self.socket_path.exists():
                 print("Warning: removing old {}".format(self.socket_path))
-                self.socket_path.unlink()
+                self._delete_socket_path()
+
+    def _delete_socket_path(self):
+        try:
+            self.socket_path.unlink()
+        except FileNotFoundError:
+            pass
+
+    def _create_server_socket(self):
+        server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+
+        server_socket.bind(str(self.socket_path))
+        server_socket.listen(5)
+
+        self.socket_path.chmod(0o777)
+
+        print('Listening on:', self.socket_path)
+
+        setproctitle.setproctitle("robotd {}: {}".format(
+            type(self.board).board_type_id,
+            type(self.board).name(self.board.node),
+        ))
+
+        return server_socket
+
+    def broadcast(self, message):
+        message = dict(message)
+        message['broadcast'] = True
+
+        for connection in self.connections.values():
+            try:
+                connection.send(message)
+            except ConnectionRefusedError:
+                self.connections.remove(connection)
+
+    def _send_board_status(self, connection):
+        board_status = self.board.status()
+        print('Sending board status:', board_status)
+        connection.send(board_status)
 
     def run(self):
         """
@@ -52,106 +112,69 @@ class BoardRunner(multiprocessing.Process):
         * Pass on commands to the `board`,
         * Call `make_safe` whenever the last user disconnects,
         * Deal with error handling and shutdown.
-
         """
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
 
-        sock.bind(str(self.socket_path))
-        sock.listen(5)
+        server_socket = self._create_server_socket()
 
-        self.socket_path.chmod(0o777)
-
-        setproctitle.setproctitle("robotd {}: {}".format(
-            type(self.board).board_type_id,
-            type(self.board).name(self.board.node),
-        ))
-
-        connections = []
-
-        def broadcast(message):
-            nonlocal connections
-
-            message = dict(message)
-            message['broadcast'] = True
-
-            msg = (json.dumps(message) + '\n').encode('utf-8')
-
-            retained_connections = []
-
-            # print("Broadcasting:", msg)
-
-            for connection in list(connections):
-                try:
-                    _send(connection, msg)
-                except ConnectionRefusedError:
-                    pass
-                else:
-                    retained_connections.append(connection)
-
-            connections = retained_connections
-
-        self.board.broadcast = broadcast
+        self.board.broadcast = self.broadcast
         self.board.start()
 
         while True:
+            connection_sockets = list(self.connections.keys())
+
             # Wait until one of the sockets is ready to read.
-            (readable, _, errorable) = select.select(
+            readable, _, errorable = select.select(
                 # connections that want to read
-                [sock] + connections,
+                [server_socket] + connection_sockets,
                 # connections that want to write
                 [],
                 # connections that want to error
-                connections,
+                connection_sockets,
             )
 
             # New connections
-            if sock in readable:
-                (new_connection, _) = sock.accept()
-                readable.append(new_connection)
-                connections.append(new_connection)
-                print("new connection opened at {}".format(self.socket_path))
-                print("Sending welcome msg:", self.board.status())
-                _send(new_connection, (json.dumps(self.board.status()) + '\n').encode('utf-8'))
+            if server_socket in readable:
+                new_socket, _ = server_socket.accept()
+                new_connection = Connection(new_socket)
+                readable.append(new_socket)
+                self.connections[new_socket] = new_connection
+                print('New connection at:', self.socket_path)
+                self._send_board_status(new_connection)
 
-            dead_connections = []
+            dead_sockets = []
 
-            for source in readable:
-                if source not in connections:
+            for sock in readable:
+                try:
+                    connection = self.connections[sock]
+                except KeyError:
                     continue
 
-                try:
-                    blob = source.recv(2048).decode('utf-8').strip()
-                except ConnectionResetError:
-                    blob = None
+                command = connection.receive()
 
-                if not blob:
-                    print("connection closed")
-                    dead_connections.append(source)
+                if command is None:
+                    dead_sockets.append(sock)
                     continue
 
-                try:
-                    command = json.loads(blob)
-                except ValueError:
-                    print("JSON decode fail")
-                else:
-                    if command != {}:
-                        self.board.command(command)
-                    print("Sending response:", json.dumps(self.board.status()))
-                    source.send((
-                                    json.dumps(self.board.status()) + '\n'
-                                ).encode('utf-8'))
+                if command != {}:
+                    self.board.command(command)
 
-            for source in errorable:
-                print("err? ", source)
-                dead_connections.append(source)
+                self._send_board_status(connection)
 
-            for dead_connection in dead_connections:
-                dead_connection.close()
-                connections.remove(dead_connection)
+            dead_sockets.extend(errorable)
 
-            if dead_connections and not connections:
+            self._close_dead_sockets(dead_sockets)
+
+            if dead_sockets and not self.connections:
                 print("Last connection closed")
                 self.board.make_safe()
+
+    def _close_dead_sockets(self, dead_sockets):
+        for sock in dead_sockets:
+            try:
+                del self.connections[sock]
+            except KeyError:
+                pass
+            sock.close()
 
     def cleanup(self):
         """
@@ -159,10 +182,8 @@ class BoardRunner(multiprocessing.Process):
 
         Called from the parent process.
         """
-        try:
-            self.socket_path.unlink()
-        except FileNotFoundError:
-            pass
+
+        self._delete_socket_path()
         self.board.stop()
 
 
@@ -240,7 +261,6 @@ def main(**kwargs):
         while True:
             master.tick()
             time.sleep(1)
-
     except KeyboardInterrupt:
         master.cleanup()
 
