@@ -263,6 +263,7 @@ class ServoAssembly(Board):
     def _command(self, *args):
         while True:
             line = ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
+            self.connection.write(b'\0')
             self.connection.write(line)
             self.connection.flush()
 
