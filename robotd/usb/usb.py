@@ -62,6 +62,9 @@ class Device(object):
 
         return self._handle[0]
 
+    def reset(self):
+        _usb.lib.libusb_reset_device(self._get_handle())
+
     def control_write(self, request, value, index, data=None, timeout=3000):
         _usb.lib.libusb_control_transfer(
             self._get_handle(),
