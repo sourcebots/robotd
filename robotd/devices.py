@@ -203,23 +203,18 @@ class Camera(Board):
     DISTANCE_MODEL = 'c270'
     IMAGE_SIZE = (1280, 720)
 
-    def __init__(self, node, camera=None):
-        super().__init__(node)
-        self.camera = camera
-
     @classmethod
     def name(cls, node):
         # Get device name
         return Path(node['DEVNAME']).stem
 
     def start(self):
-        if not self.camera:
-            self.camera = VisionCamera(
-                int(self.node['MINOR']),
-                self.IMAGE_SIZE,
-                self.DISTANCE_MODEL,
-            )
-        self.vision = Vision(self.camera)
+        camera = VisionCamera(
+            int(self.node['MINOR']),
+            self.IMAGE_SIZE,
+            self.DISTANCE_MODEL,
+        )
+        self.vision = Vision(camera)
 
         self._status = {'markers': []}
 
