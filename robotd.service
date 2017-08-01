@@ -2,6 +2,10 @@
 Description=Provide access to robot peripherals
 
 [Service]
+# We will tell systemd when we're started (this is handled in PowerBoard class)
+Type=notify
+NotifyAccess=all
+
 ExecStart=/usr/bin/python3 -u -m robotd.master
 KillMode=mixed
 KillSignal=SIGINT

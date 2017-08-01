@@ -1,5 +1,7 @@
 """Actual device classes."""
+import os
 from pathlib import Path
+import subprocess
 from threading import Lock, Thread, Event
 
 import serial
@@ -151,6 +153,14 @@ class PowerBoard(Board):
 
         self.device.open()
         self.make_safe()
+
+        # This power board is now ready; signal to systemd that robotd is
+        # therefore ready
+        subprocess.check_call([
+            'systemd-notify',
+            '--ready',
+            '--pid={}'.format(os.getppid()),
+        ])
 
     def _set_power_outputs(self, level):
         for command in (0, 1, 2, 3, 4, 5):
