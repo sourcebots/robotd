@@ -233,8 +233,6 @@ class Camera(Board):
 class ServoAssembly(Board):
     lookup_keys = {
         'subsystem': 'tty',
-        'ID_VENDOR_ID': '1a86',
-        'ID_MODEL_ID': '7523',
     }
 
     NUM_SERVOS = 16
@@ -243,9 +241,20 @@ class ServoAssembly(Board):
     INPUT = 'hi-z'
 
     @classmethod
+    def included(cls, node):
+        if 'ID_MODEL_ID' not in node or 'ID_VENDOR_ID' not in node:
+            return False
+
+        return (node['ID_MODEL_ID'], node['ID_VENDOR_ID']) in [
+            ('0043', '2a03'),  # Fake Uno
+            ('7523', '1a86'),  # Real Uno
+        ]
+
+    @classmethod
     def name(cls, node):
         """Board name."""
-        return 'SB_{}'.format(node['MINOR'])
+        return node.get('ID_SERIAL_SHORT',
+                        'SB_{}'.format(node['MINOR']))
 
     def start(self):
         device = self.node['DEVNAME']
