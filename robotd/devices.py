@@ -274,6 +274,8 @@ class ServoAssembly(Board):
             while True:
                 line = self.connection.readline()
 
+                print('Got back from servo:', line)
+
                 if not line:
                     # Leave the loop and reissue the command
                     break
