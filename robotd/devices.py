@@ -2,7 +2,6 @@
 import os
 from pathlib import Path
 import subprocess
-from threading import Lock, Thread, Event
 
 import serial
 import struct
@@ -218,21 +217,19 @@ class Camera(Board):
 
         self._status = {'markers': []}
 
-        self.vision_thread = Thread(target=self._vision_thread)
-        self.vision_thread.start()
-
-    def _vision_thread(self):
-        while True:
-            latest = [x.__dict__ for x in self.vision.snapshot()]
-            self._status['markers'] = latest
-            self.broadcast(self._status)
+    def see(self):
+        latest = [x.__dict__ for x in self.vision.snapshot()]
+        self._status['markers'] = latest
 
     def status(self):
         return self._status
 
     def command(self, cmd):
         """Run user-provided command."""
-        pass
+        if cmd.get('see', False):
+            self.see()
+
+        self.broadcast(self._status)
 
 
 class ServoAssembly(Board):
