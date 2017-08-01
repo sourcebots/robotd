@@ -50,6 +50,8 @@ ffibuilder.cdef("""
 
     void libusb_close(struct libusb_device_handle*);
 
+    void libusb_reset_device(struct libusb_device_handle*);
+
     int libusb_control_transfer(
         struct libusb_device_handle*,
         uint8_t,
