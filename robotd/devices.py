@@ -230,11 +230,14 @@ class Camera(Board):
         )
         self.vision = Vision(camera)
 
+        self.usb_device = self.get_usb_device(self.node)
+
         self._status = {'markers': []}
 
-    def get_usb_device(self):
-        vendor_id = int(self.node['ID_VENDOR_ID'], 16)
-        product_id = int(self.node['ID_MODEL_ID'], 16)
+    @staticmethod
+    def get_usb_device(node):
+        vendor_id = int(node['ID_VENDOR_ID'], 16)
+        product_id = int(node['ID_MODEL_ID'], 16)
         device_id = (vendor_id, product_id)
 
         for device in usb.enumerate():
@@ -247,7 +250,7 @@ class Camera(Board):
         )
 
     def see(self):
-        with self.get_usb_device() as usb_device:
+        with self.usb_device as usb_device:
             latest = [x.__dict__ for x in self.vision.snapshot()]
             self._status['markers'] = latest
             usb_device.reset()
