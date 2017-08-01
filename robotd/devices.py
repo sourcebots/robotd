@@ -278,19 +278,22 @@ class ServoAssembly(Board):
                     # Leave the loop and reissue the command
                     break
 
-                if line.startswith(b'+ '):
-                    return results
-                elif line.startswith(b'- '):
-                    if b'unknown command' in line:
-                        break  # try again
+                try:
+                    if line.startswith(b'+ '):
+                        return results
+                    elif line.startswith(b'- '):
+                        if b'unknown command' in line:
+                            break  # try again
+                        else:
+                            raise RuntimeError(line[2:].decode('utf-8') + '\n' + '\n'.join(comments))
+                    elif line.startswith(b'# '):
+                        comments.append(line[2:].decode('utf-8').strip())
+                    elif line.startswith(b'> '):
+                        results.append(line[2:].decode('utf-8').strip())
                     else:
-                        raise RuntimeError(line[2:].decode('utf-8') + '\n' + '\n'.join(comments))
-                elif line.startswith(b'# '):
-                    comments.append(line[2:].decode('utf-8').strip())
-                elif line.startswith(b'> '):
-                    results.append(line[2:].decode('utf-8').strip())
-                else:
-                    raise RuntimeError("wtf is this")
+                        raise ValueError("wtf is this")
+                except ValueError:
+                    break
 
     def make_safe(self):
         for servo in range(self.NUM_SERVOS):
