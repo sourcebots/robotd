@@ -193,7 +193,22 @@ class PowerBoard(Board):
 
 
 class Camera(Board):
-    """Camera"""
+    """
+    A one-shot camera board which copes with the issues discovered with using a
+    Logitech C270 camera on the Pis.
+
+    There is an issue with the C270 on the pis where the camera will take the
+    first image fine, but any subsequent attempts will fail. The second attempt
+    usually causes the camera to reset (which is equivalent to it being
+    unplugged and reattached), meaning that almost exactly 10s later the camera
+    is usable again. However, it only successfully resets if it is left alone
+    while it is re-connecting.
+
+    As a result we force the reset after taking an image and rely on the master
+    process killing the board worker to avoid any further requests being
+    processed this time around. When the camera comes back, it will be ready to
+    process another request for a frame.
+    """
 
     lookup_keys = {
         'subsystem': 'video4linux',
@@ -217,9 +232,25 @@ class Camera(Board):
 
         self._status = {'markers': []}
 
+    def get_usb_device(self):
+        vendor_id = int(self.node['ID_VENDOR_ID'], 16)
+        product_id = int(self.node['ID_MODEL_ID'], 16)
+        device_id = (vendor_id, product_id)
+
+        for device in usb.enumerate():
+            if (device.vendor, device.product) == device_id:
+                return device
+
+        raise RuntimeError(
+            "Failed to get USB device with vendor id 0x{0:04x} and "
+            "product id 0x{1:04x}".format(vendor_id, product_id),
+        )
+
     def see(self):
-        latest = [x.__dict__ for x in self.vision.snapshot()]
-        self._status['markers'] = latest
+        with self.get_usb_device() as usb_device:
+            latest = [x.__dict__ for x in self.vision.snapshot()]
+            self._status['markers'] = latest
+            usb_device.reset()
 
     def status(self):
         return self._status
