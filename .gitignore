@@ -9,3 +9,6 @@ build
 .eggs
 venv
 *.deb
+
+# VSCode project files
+/.vscode
