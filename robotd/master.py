@@ -209,7 +209,8 @@ class MasterProcess(object):
         for board_type in BOARDS:
             if hasattr(board_type, 'lookup_keys'):
                 nodes = self.context.list_devices(**board_type.lookup_keys)
-                self._process_device_list(board_type, nodes)
+                initialized_nodes = [n for n in nodes if n.is_initialized]
+                self._process_device_list(board_type, initialized_nodes)
 
     def cleanup(self):
         """Shut down all the controllers."""
