@@ -4,6 +4,7 @@ import collections
 import json
 import multiprocessing
 import select
+import shutil
 import socket
 import time
 from pathlib import Path
@@ -197,12 +198,18 @@ class MasterProcess(object):
         self.context = pyudev.Context()
         self.root_dir = Path(root_dir)
 
+        self.clear_socket_files()
+
         self.runners_lock = threading.Lock()
 
         # Init the startup boards
         for board_type in BOARDS:
             if board_type.create_on_startup:
                 self._start_board_instance(board_type, 'startup')
+
+    def clear_socket_files(self):
+        for path in self.root_dir.iterdir():
+            shutil.rmtree(str(path))
 
     def tick(self):
         """Poll udev for any new or missing boards."""
