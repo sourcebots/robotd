@@ -268,7 +268,14 @@ class ServoAssembly(Board):
 
     def start(self):
         device = self.node['DEVNAME']
+
         self.connection = serial.Serial(device, baudrate=9600, timeout=0.2)
+
+        if hasattr(self.connection, 'reset_input_buffer'):
+            self._reset_input_buffer = self.connection.reset_input_buffer
+        else:
+            self._reset_input_buffer = self.connection.flushInput
+
         (self.fw_version,) = self._command('version')
         self.fw_version = self.fw_version.strip()
         self._servo_status = {}
@@ -276,11 +283,14 @@ class ServoAssembly(Board):
         self._pin_values = {}
         self._analogue_values = {}
         self._ultrasound_value = None
+
         self.make_safe()
         print("Finished initialising servo assembly on {}".format(device))
 
     def _command(self, *args):
         while True:
+            self._reset_input_buffer()
+
             line = ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
             self.connection.write(b'\0')
             self.connection.write(line)
