@@ -294,7 +294,7 @@ class ServoAssembly(Board):
         while True:
             self._reset_input_buffer()
 
-            command_id_part = '@{id}'.format(id=command_id).encode('utf-8')
+            command_id_part = '@{id} '.format(id=command_id).encode('utf-8')
 
             line = command_id_part + ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
             self.connection.write(b'\0')
@@ -316,8 +316,10 @@ class ServoAssembly(Board):
                     break
 
                 if line.startswith(b'@'):
-                    returned_command_id, line = line[1:].split(b' ', 1)
-                    if int(returned_command_id.decode('utf-8')) != command_id:
+                    returned_command_id_str, line = line[1:].split(b' ', 1)
+                    returned_command_id = int(returned_command_id_str.decode('utf-8')) & 0xffff
+
+                    if returned_command_id != command_id:
                         print('Got response for different command, ignoring...')
                         continue
 
