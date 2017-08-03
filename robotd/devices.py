@@ -1,5 +1,6 @@
 """Actual device classes."""
 import os
+import random
 from pathlib import Path
 import subprocess
 from threading import Lock, Thread, Event
@@ -288,10 +289,14 @@ class ServoAssembly(Board):
         print("Finished initialising servo assembly on {}".format(device))
 
     def _command(self, *args):
+        command_id = random.randint(1, 65535)
+
         while True:
             self._reset_input_buffer()
 
-            line = ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
+            command_id_part = '@{id}'.format(id=command_id).encode('utf-8')
+
+            line = command_id_part + ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
             self.connection.write(b'\0')
             self.connection.write(line)
             self.connection.flush()
@@ -309,6 +314,12 @@ class ServoAssembly(Board):
                 if not line:
                     # Leave the loop and reissue the command
                     break
+
+                if line.startswith(b'@'):
+                    returned_command_id, line = line[1:].split(b' ', 1)
+                    if int(returned_command_id.decode('utf-8')) != command_id:
+                        print('Got response for different command, ignoring...')
+                        continue
 
                 try:
                     if line.startswith(b'+ '):
