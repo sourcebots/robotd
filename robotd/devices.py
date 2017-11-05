@@ -8,7 +8,7 @@ from threading import Lock, Thread, Event
 import serial
 import struct
 
-from sb_vision import Camera as VisionCamera, Vision
+from sb_vision import Camera as VisionCamera, Vision, Token
 from robotd import usb
 from robotd.devices_base import Board, BoardMeta
 from robotd.game_specific import MARKER_SIZES
@@ -227,10 +227,16 @@ class Camera(Board):
         self.vision_thread = Thread(target=self._vision_thread)
         self.vision_thread.start()
 
+    @staticmethod
+    def _serialise_marker(marker : Token):
+        d = marker.__dict__
+        d['homography_matrix'] = [[c for c in r] for r in marker.homography_matrix]
+        d['cartesian'] = [x for x in marker.cartesian]
+        return d
+
     def _vision_thread(self):
         while True:
-            latest = [x.__dict__ for x in self.vision.snapshot()]
-            self._status['markers'] = latest
+            self._status['markers'] = [self._serialise_marker(x) for x in self.vision.snapshot()]
             self.broadcast(self._status)
 
     def status(self):
