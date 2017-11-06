@@ -198,6 +198,7 @@ class MasterProcess(object):
         self.context = pyudev.Context()
         self.root_dir = Path(root_dir)
 
+        self.root_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         self.clear_socket_files()
 
         self.runners_lock = threading.Lock()
