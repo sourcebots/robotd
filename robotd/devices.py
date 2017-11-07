@@ -52,7 +52,13 @@ class MotorBoard(Board):
         """Brief status description of the peripheral."""
         return self._status
 
-    def _speed_byte(self, value):
+    @classmethod
+    def byte_for_speed(cls, value):
+        """
+        Get the byte value for the given speed value. Accepts float or a
+        string of 'coast' or 'brake'.
+        """
+
         if value == 'coast':
             return 1
         elif value == 'brake':
@@ -60,7 +66,7 @@ class MotorBoard(Board):
         elif -1 <= value <= 1:
             return 128 + int(100 * value)
         else:
-            raise ValueError("Non-understood speed")
+            raise ValueError("Unknown speed value: {}".format(value))
 
     def command(self, cmd):
         """Run user-provided command."""
@@ -70,8 +76,8 @@ class MotorBoard(Board):
             3, 2,
             2, 1,
             3, 1,
-            2, self._speed_byte(self._status['m0']),
-            3, self._speed_byte(self._status['m1']),
+            2, self.byte_for_speed(self._status['m0']),
+            3, self.byte_for_speed(self._status['m1']),
         ]))
 
 
