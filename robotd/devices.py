@@ -230,8 +230,8 @@ class Camera(Board):
     @staticmethod
     def _serialise_marker(marker : Token):
         d = marker.__dict__
-        d['homography_matrix'] = [[c for c in r] for r in marker.homography_matrix]
-        d['cartesian'] = [x for x in marker.cartesian]
+        d['homography_matrix'] = marker.homography_matrix.tolist()
+        d['cartesian'] = marker.cartesian.tolist()
         return d
 
     def _vision_thread(self):
