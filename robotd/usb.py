@@ -97,7 +97,7 @@ class Device:
         return bytes(target)[:size]
 
 
-def enumerate():
+def enumerate_devices():
     """Enumerate through all USB devices returning a list."""
 
     devs = _usb.ffi.new('struct libusb_device***')

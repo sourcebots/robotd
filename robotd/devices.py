@@ -158,7 +158,7 @@ class PowerBoard(Board):
             self.node['DEVPATH'].rsplit('-', 1)[-1].split('.')
         ))
 
-        for device in usb.enumerate():
+        for device in usb.enumerate_devices():
             if device.path == path:
                 self.device = device
                 break
