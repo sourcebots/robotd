@@ -100,10 +100,14 @@ class BrainTemperatureSensor(Board):
         """Simple node name."""
         return node.sys_name
 
+    def read_temperature_value(self):
+        path = '{}/temp'.format(self.node.sys_path)
+        with open(path) as file:
+            return int(file.read())
+
     def status(self):
         """Brief status description of the peripheral."""
-        with open('{}/temp'.format(self.node.sys_path), 'r') as f:
-            temp_milli_degrees = int(f.read())
+        temp_milli_degrees = self.read_temperature_value()
         return {'temperature': temp_milli_degrees / 1000}
 
 
