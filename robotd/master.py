@@ -3,17 +3,17 @@
 import collections
 import json
 import multiprocessing
+from pathlib import Path
 import select
 import shutil
 import socket
 import time
-from pathlib import Path
 import threading
 
-import pyudev
 import setproctitle
+import pyudev
 
-from robotd.devices import BOARDS
+from .devices import BOARDS
 
 
 class Connection:

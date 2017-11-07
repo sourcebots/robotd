@@ -1,17 +1,18 @@
 """Actual device classes."""
+
 import os
-import random
 from pathlib import Path
+import random
+import struct
 import subprocess
 from threading import Lock, Thread, Event
 
-import serial
-import struct
-
 from sb_vision import Camera as VisionCamera, Vision
-from robotd import usb
-from robotd.devices_base import Board, BoardMeta
-from robotd.game_specific import MARKER_SIZES
+import serial
+
+from . import usb
+from .devices_base import Board, BoardMeta
+from .game_specific import MARKER_SIZES
 
 
 class MotorBoard(Board):

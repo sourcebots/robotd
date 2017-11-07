@@ -1,5 +1,7 @@
-from robotd.native import _usb
 import atexit
+
+from .native import _usb
+
 
 context = _usb.ffi.new('struct libusb_context**')
 _usb.lib.libusb_init(context)
