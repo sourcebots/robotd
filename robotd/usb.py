@@ -8,7 +8,8 @@ _usb.lib.libusb_init(context)
 atexit.register(_usb.lib.libusb_exit, context[0])
 
 
-class Device(object):
+class Device:
+
     def __init__(self, device_list, index):
         self._device_list = device_list
         self._index = index
@@ -97,6 +98,8 @@ class Device(object):
 
 
 def enumerate():
+    """Enumerate through all USB devices returning a list."""
+
     devs = _usb.ffi.new('struct libusb_device***')
     num_devs = _usb.lib.libusb_get_device_list(context[0], devs)
 

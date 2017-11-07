@@ -66,7 +66,7 @@ class MotorBoard(Board):
         elif -1 <= value <= 1:
             return 128 + int(100 * value)
         else:
-            raise ValueError("Unknown speed value: {}".format(value))
+            raise ValueError('Unknown speed value: {}'.format(value))
 
     def command(self, cmd):
         """Run user-provided command."""
@@ -112,7 +112,9 @@ class BrainTemperatureSensor(Board):
 
 
 class GameState(Board):
-    """ State storage for the game, keeps a store of everything it has received """
+    """
+    State storage for the game, keeps a store of everything it has received.
+    """
 
     # define the name od the board
     board_type_id = 'game'
@@ -124,7 +126,7 @@ class GameState(Board):
 
     @classmethod
     def name(cls, node):
-        return "state"
+        return 'state'
 
     def command(self, cmd):
         self.state.update(cmd)
@@ -161,7 +163,7 @@ class PowerBoard(Board):
                 self.device = device
                 break
         else:
-            raise RuntimeError("Cannot open USB device by path")
+            raise RuntimeError('Cannot open USB device by path')
 
         self.device.open()
         self.make_safe()
@@ -297,7 +299,7 @@ class ServoAssembly(Board):
         self._ultrasound_value = None
 
         self.make_safe()
-        print("Finished initialising servo assembly on {}".format(device))
+        print('Finished initialising servo assembly on {}'.format(device))
 
     def _command(self, *args):
         command_id = random.randint(1, 65535)
@@ -347,7 +349,7 @@ class ServoAssembly(Board):
                     elif line.startswith(b'> '):
                         results.append(line[2:].decode('utf-8').strip())
                     else:
-                        raise ValueError("wtf is this")
+                        raise ValueError('wtf is this')
                 except ValueError:
                     break
 
