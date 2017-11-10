@@ -1,17 +1,18 @@
 """Actual device classes."""
+
 import os
-import random
 from pathlib import Path
+import random
+import struct
 import subprocess
 from threading import Lock, Thread, Event
 
+from sb_vision import Camera as VisionCamera, Vision
 import serial
-import struct
 
-from sb_vision import Camera as VisionCamera, Vision, Token
-from robotd import usb
-from robotd.devices_base import Board, BoardMeta
-from robotd.game_specific import MARKER_SIZES
+from . import usb
+from .devices_base import Board, BoardMeta
+from .game_specific import MARKER_SIZES
 
 
 class MotorBoard(Board):
@@ -51,7 +52,13 @@ class MotorBoard(Board):
         """Brief status description of the peripheral."""
         return self._status
 
-    def _speed_byte(self, value):
+    @classmethod
+    def byte_for_speed(cls, value):
+        """
+        Get the byte value for the given speed value. Accepts float or a
+        string of 'coast' or 'brake'.
+        """
+
         if value == 'coast':
             return 1
         elif value == 'brake':
@@ -59,7 +66,7 @@ class MotorBoard(Board):
         elif -1 <= value <= 1:
             return 128 + int(100 * value)
         else:
-            raise ValueError("Non-understood speed")
+            raise ValueError('Unknown speed value: {}'.format(value))
 
     def command(self, cmd):
         """Run user-provided command."""
@@ -69,8 +76,8 @@ class MotorBoard(Board):
             3, 2,
             2, 1,
             3, 1,
-            2, self._speed_byte(self._status['m0']),
-            3, self._speed_byte(self._status['m1']),
+            2, self.byte_for_speed(self._status['m0']),
+            3, self.byte_for_speed(self._status['m1']),
         ]))
 
 
@@ -93,15 +100,21 @@ class BrainTemperatureSensor(Board):
         """Simple node name."""
         return node.sys_name
 
+    def read_temperature_value(self):
+        path = '{}/temp'.format(self.node.sys_path)
+        with open(path) as file:
+            return int(file.read())
+
     def status(self):
         """Brief status description of the peripheral."""
-        with open('{}/temp'.format(self.node.sys_path), 'r') as f:
-            temp_milli_degrees = int(f.read())
+        temp_milli_degrees = self.read_temperature_value()
         return {'temperature': temp_milli_degrees / 1000}
 
 
 class GameState(Board):
-    """ State storage for the game, keeps a store of everything it has received """
+    """
+    State storage for the game, keeps a store of everything it has received.
+    """
 
     # define the name od the board
     board_type_id = 'game'
@@ -113,7 +126,7 @@ class GameState(Board):
 
     @classmethod
     def name(cls, node):
-        return "state"
+        return 'state'
 
     def command(self, cmd):
         self.state.update(cmd)
@@ -145,12 +158,12 @@ class PowerBoard(Board):
             self.node['DEVPATH'].rsplit('-', 1)[-1].split('.')
         ))
 
-        for device in usb.enumerate():
+        for device in usb.enumerate_devices():
             if device.path == path:
                 self.device = device
                 break
         else:
-            raise RuntimeError("Cannot open USB device by path")
+            raise RuntimeError('Cannot open USB device by path')
 
         self.device.open()
         self.make_safe()
@@ -292,7 +305,7 @@ class ServoAssembly(Board):
         self._ultrasound_value = None
 
         self.make_safe()
-        print("Finished initialising servo assembly on {}".format(device))
+        print('Finished initialising servo assembly on {}'.format(device))
 
     def _command(self, *args):
         command_id = random.randint(1, 65535)
@@ -342,7 +355,7 @@ class ServoAssembly(Board):
                     elif line.startswith(b'> '):
                         results.append(line[2:].decode('utf-8').strip())
                     else:
-                        raise ValueError("wtf is this")
+                        raise ValueError('wtf is this')
                 except ValueError:
                     break
 

@@ -3,17 +3,17 @@
 import collections
 import json
 import multiprocessing
+from pathlib import Path
 import select
 import shutil
 import socket
 import time
-from pathlib import Path
 import threading
 
-import pyudev
 import setproctitle
+import pyudev
 
-from robotd.devices import BOARDS
+from .devices import BOARDS
 
 
 class Connection:
@@ -46,7 +46,6 @@ class BoardRunner(multiprocessing.Process):
     """Control process for one board."""
 
     def __init__(self, board, root_dir, **kwargs):
-        """Constructor from a given `Board`."""
         super().__init__(**kwargs)
 
         self.board = board
@@ -63,7 +62,7 @@ class BoardRunner(multiprocessing.Process):
             self.socket_path.parent.mkdir(parents=True)
         except FileExistsError:
             if self.socket_path.exists():
-                print("Warning: removing old {}".format(self.socket_path))
+                print('Warning: removing old {}'.format(self.socket_path))
                 self._delete_socket_path()
 
     def _delete_socket_path(self):
@@ -82,7 +81,7 @@ class BoardRunner(multiprocessing.Process):
 
         print('Listening on:', self.socket_path)
 
-        setproctitle.setproctitle("robotd {}: {}".format(
+        setproctitle.setproctitle('robotd {}: {}'.format(
             type(self.board).board_type_id,
             type(self.board).name(self.board.node),
         ))
@@ -167,7 +166,7 @@ class BoardRunner(multiprocessing.Process):
             self._close_dead_sockets(dead_sockets)
 
             if dead_sockets and not self.connections:
-                print("Last connection closed")
+                print('Last connection closed')
                 self.board.make_safe()
 
     def _close_dead_sockets(self, dead_sockets):
@@ -193,11 +192,11 @@ class MasterProcess(object):
     """The mighty God object which manages the controllers."""
 
     def __init__(self, root_dir):
-        """Standard constructor."""
         self.runners = collections.defaultdict(dict)
         self.context = pyudev.Context()
         self.root_dir = Path(root_dir)
 
+        self.root_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
         self.clear_socket_files()
 
         self.runners_lock = threading.Lock()
@@ -241,7 +240,7 @@ class MasterProcess(object):
 
             for new_device in new_paths:
                 print(
-                    "Detected new %s: %s (%s)" % (
+                    'Detected new %s: %s (%s)' % (
                         board_type.__name__,
                         new_device,
                         board_type.name(nodes_by_path[new_device]),
@@ -250,7 +249,7 @@ class MasterProcess(object):
                 self._start_board_instance(board_type, new_device, node=nodes_by_path[new_device])
 
             for dead_device in missing_paths:
-                print("Disconnected %s: %s" % (board_type.__name__, dead_device))
+                print('Disconnected %s: %s' % (board_type.__name__, dead_device))
                 runner = self.runners[board_type][dead_device]
                 runner.terminate()
                 runner.join()
@@ -283,7 +282,7 @@ class MasterProcess(object):
                 for board_type, runners in list(self.runners.items()):
                     for device_id, runner_process in list(runners.items()):
                         if not runner_process.is_alive():
-                            print("Dead worker: {}({})".format(
+                            print('Dead worker: {}({})'.format(
                                 board_type,
                                 device_id,
                             ))
@@ -295,7 +294,7 @@ def main(**kwargs):
     """Main entry point."""
     master = MasterProcess(**kwargs)
 
-    setproctitle.setproctitle("robotd master")
+    setproctitle.setproctitle('robotd master')
 
     master.launch_monitor()
     try:
@@ -307,24 +306,21 @@ def main(**kwargs):
 
 
 def main_cmdline():
-    # Parse terminal arguments
     import argparse
     parser = argparse.ArgumentParser()
 
-    default_root_dir = Path("/var/robotd")
+    default_root_dir = Path('/var/robotd')
     parser.add_argument(
-        "--root-dir",
+        '--root-dir',
         type=Path,
-        help="directory to run root of robotd at (defaults to {})".format(
+        help='directory to run root of robotd at (defaults to {})'.format(
             default_root_dir,
         ),
         default=default_root_dir,
     )
     args = parser.parse_args()
 
-    main(
-        root_dir=args.root_dir,
-    )
+    main(root_dir=args.root_dir)
 
 
 if __name__ == '__main__':

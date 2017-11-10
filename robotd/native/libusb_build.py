@@ -1,5 +1,6 @@
 import cffi
 
+
 ffibuilder = cffi.FFI()
 
 ffibuilder.set_source("robotd.native._usb", """
@@ -81,6 +82,7 @@ ffibuilder.cdef("""
         unsigned int
     );
 """)
+
 
 if __name__ == '__main__':
     ffibuilder.compile(verbose=True)
