@@ -240,10 +240,16 @@ class Camera(Board):
         self.vision_thread = Thread(target=self._vision_thread)
         self.vision_thread.start()
 
+    @staticmethod
+    def _serialise_marker(marker: Token):
+        d = marker.__dict__
+        d['homography_matrix'] = marker.homography_matrix.tolist()
+        d['cartesian'] = marker.cartesian.tolist()
+        return d
+
     def _vision_thread(self):
         while True:
-            latest = [x.__dict__ for x in self.vision.snapshot()]
-            self._status['markers'] = latest
+            self._status['markers'] = [self._serialise_marker(x) for x in self.vision.snapshot()]
             self.broadcast(self._status)
 
     def status(self):
