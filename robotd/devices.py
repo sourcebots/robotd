@@ -7,7 +7,7 @@ import struct
 import subprocess
 from threading import Lock, Thread, Event
 
-from sb_vision import Camera as VisionCamera, Vision
+from sb_vision import Camera as VisionCamera, Vision, Token
 import serial
 
 from . import usb
