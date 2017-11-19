@@ -187,6 +187,10 @@ class PowerBoard(Board):
     def _set_start_led(self, value):
         self.device.control_write(64, value, 6)
 
+    def _buzz_piezo(self, args):
+        data = struct.pack("HH", args['frequency'], args['duration'])
+        self.device.control_write(64, 0, 8, data)
+
     @property
     def start_button_status(self):
         result = self.device.control_read(64, 0, 8, 4)
@@ -205,6 +209,8 @@ class PowerBoard(Board):
         elif 'start-led' in cmd:
             value = bool(cmd['start-led'])
             self._set_start_led(1 if value else 0)
+        elif 'buzz' in cmd:
+            self._buzz_piezo(cmd['buzz'])
 
 
 class Camera(Board):
