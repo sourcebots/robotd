@@ -5,7 +5,6 @@ from pathlib import Path
 import random
 import struct
 import subprocess
-from threading import Lock, Thread, Event
 import time
 
 from sb_vision import Camera as VisionCamera, Vision, Token
@@ -247,9 +246,6 @@ class Camera(Board):
             'markers': [],
         }
 
-        self.vision_thread = Thread(target=self._vision_thread)
-        self.vision_thread.start()
-
     def _update_status(self, markers):
         self._status = {
             'snapshot_timestamp': time.time(),
@@ -263,18 +259,18 @@ class Camera(Board):
         d['cartesian'] = marker.cartesian.tolist()
         return d
 
-    def _vision_thread(self):
-        while True:
-            markers = [self._serialise_marker(x) for x in self.vision.snapshot()]
-            self._update_status(markers)
-            self.broadcast(self._status)
-
     def status(self):
         return self._status
 
     def command(self, cmd):
         """Run user-provided command."""
-        pass
+        if cmd.get('see', False):
+            self._update_status(markers=[
+                self._serialise_marker(x)
+                for x in self.vision.snapshot()
+            ])
+            # rely on the status being sent back to the requesting connection
+            # by the ``BoardRunner``.
 
 
 class ServoAssembly(Board):
