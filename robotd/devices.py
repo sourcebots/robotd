@@ -12,7 +12,6 @@ import serial
 
 from . import usb
 from .devices_base import Board, BoardMeta
-from .game_specific import MARKER_SIZES
 
 
 class MotorBoard(Board):
