@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import time
-from devices_base import Board
+from .devices_base import Board
 
 from sb_vision import Camera as VisionCamera, Vision, Token
 
