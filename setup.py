@@ -17,7 +17,6 @@ setup(
         'robotd/native/libusb_build.py:ffibuilder',
     ],
     install_requires=[
-        'sb-vision',
         'pyudev',
         'pyserial',
         "cffi>=1.4.0",
