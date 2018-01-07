@@ -4,9 +4,13 @@ import os
 import random
 import struct
 import subprocess
+
 import serial
 from sb_vision import Camera as VisionCamera
 from sb_vision import Token, Vision
+
+from . import usb
+from .devices_base import Board, BoardMeta
 
 try:
     import sb_vision
@@ -18,8 +22,6 @@ except ImportError:
 if ENABLE_VISION:
     from .camera import *
 
-from . import usb
-from .devices_base import Board, BoardMeta
 
 
 class MotorBoard(Board):
