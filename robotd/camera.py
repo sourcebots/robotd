@@ -1,3 +1,5 @@
+"""A camera device."""
+
 import time
 from pathlib import Path
 
