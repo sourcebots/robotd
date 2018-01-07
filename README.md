@@ -1,6 +1,8 @@
 robot control daemon
 ====================
 
+[![CircleCI](https://circleci.com/gh/sourcebots/robotd.svg?style=shield&circle-token=63991c2f96a88688d4fda754b0f343d1d9882907)](https://circleci.com/gh/sourcebots/robotd)
+
 Runs a master process which monitors for Robot peripherals. For each one it
 finds, it opens a UNIX seqpacket socket in `/var/robotd/<type>/<id>` and runs
 a controller process to actually communicate with the board.
