@@ -348,7 +348,9 @@ class ServoAssembly(Board):
 
                 if line.startswith(b'@'):
                     returned_command_id_str, line = line[1:].split(b' ', 1)
-                    returned_command_id = int(returned_command_id_str.decode('utf-8')) & 0xffff
+                    returned_command_id = int(
+                        returned_command_id_str.decode('utf-8'),
+                    ) & 0xffff
 
                     if returned_command_id != command_id:
                         print('Got response for different command, ignoring...')
@@ -361,7 +363,11 @@ class ServoAssembly(Board):
                         if b'unknown command' in line:
                             break  # try again
                         else:
-                            raise RuntimeError(line[2:].decode('utf-8') + '\n' + '\n'.join(comments))
+                            raise RuntimeError(
+                                line[2:].decode('utf-8') +
+                                '\n' +
+                                '\n'.join(comments),
+                            )
                     elif line.startswith(b'# '):
                         comments.append(line[2:].decode('utf-8').strip())
                     elif line.startswith(b'> '):
