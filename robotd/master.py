@@ -325,6 +325,7 @@ def main(**kwargs):
 
 
 def main_cmdline():
+    """Command line entry point."""
     import argparse
     parser = argparse.ArgumentParser()
 
