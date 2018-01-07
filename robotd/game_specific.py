@@ -1,3 +1,5 @@
+"""Game specific values."""
+
 # ******************************************************************************
 #   NOTICE: IF YOU CHANGE THIS FILE PLEASE CHANGE ITS COUNTERPART IN ROBOT-API
 # ******************************************************************************

@@ -1,3 +1,5 @@
+"""Wrapper for USB device access."""
+
 import atexit
 
 from .native import _usb
@@ -8,6 +10,7 @@ atexit.register(_usb.lib.libusb_exit, context[0])
 
 
 class Device:
+    """A USB device."""
 
     def __init__(self, device_list, index):
         self._device_list = device_list

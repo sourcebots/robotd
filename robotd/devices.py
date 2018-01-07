@@ -55,8 +55,9 @@ class MotorBoard(Board):
     @classmethod
     def byte_for_speed(cls, value):
         """
-        Get the byte value for the given speed value. Accepts float or a
-        string of 'coast' or 'brake'.
+        Get the byte value for the given speed value.
+
+        Accepts float or a string of 'coast' or 'brake'.
         """
 
         if value == 'coast':
@@ -136,6 +137,8 @@ class GameState(Board):
 
 
 class PowerBoard(Board):
+    """A power board."""
+
     lookup_keys = {
         'subsystem': 'usb',
         'ID_VENDOR': 'Student_Robotics',
@@ -214,7 +217,7 @@ class PowerBoard(Board):
 
 
 class Camera(Board):
-    """Camera"""
+    """A camera."""
 
     lookup_keys = {
         'subsystem': 'video4linux',
@@ -274,6 +277,12 @@ class Camera(Board):
 
 
 class ServoAssembly(Board):
+    """
+    A servo assembly.
+
+    Technically this is actually an arduino with a servo shield attached.
+    """
+
     lookup_keys = {
         'subsystem': 'tty',
     }

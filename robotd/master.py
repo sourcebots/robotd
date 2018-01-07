@@ -17,19 +17,30 @@ from .devices import BOARDS
 
 
 class Connection:
+    """
+    A connection to a device.
+
+    This wraps a ``socket.socket`` providing encoding and decoding so that
+    consumers of this class can send and receive JSON-compatible typed data
+    rather than needing to worry about lower-level details.
+    """
 
     def __init__(self, socket):
+        """Wrap the given socket."""
         self.socket = socket
         self.data = b''
 
     def close(self):
+        """Close the connection."""
         self.socket.close()
 
     def send(self, message):
+        """Send the given JSON-compatible message over the connection."""
         line = json.dumps(message).encode('utf-8') + b'\n'
         self.socket.sendall(line)
 
     def receive(self):
+        """Receive a single message from the connection."""
         while b'\n' not in self.data:
             message = self.socket.recv(4096)
             if message == b'':
@@ -89,6 +100,7 @@ class BoardRunner(multiprocessing.Process):
         return server_socket
 
     def broadcast(self, message):
+        """Broadcast a message over all connections."""
         message = dict(message)
         message['broadcast'] = True
 
