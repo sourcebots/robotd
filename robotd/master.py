@@ -246,10 +246,17 @@ class MasterProcess(object):
                         board_type.name(nodes_by_path[new_device]),
                     ),
                 )
-                self._start_board_instance(board_type, new_device, node=nodes_by_path[new_device])
+                self._start_board_instance(
+                    board_type,
+                    new_device,
+                    node=nodes_by_path[new_device],
+                )
 
             for dead_device in missing_paths:
-                print('Disconnected %s: %s' % (board_type.__name__, dead_device))
+                print('Disconnected %s: %s' % (
+                    board_type.__name__,
+                    dead_device,
+                ))
                 runner = self.runners[board_type][dead_device]
                 runner.terminate()
                 runner.join()
