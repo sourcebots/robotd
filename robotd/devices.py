@@ -312,9 +312,7 @@ class ServoAssembly(Board):
                     ) & 0xffff
 
                     if returned_command_id != command_id:
-                        print(
-                            'Got response for different command, ignoring...',
-                        )
+                        print('Got response for different command, ignoring...')
                         continue
 
                 try:
