@@ -11,15 +11,16 @@ from . import usb
 from .devices_base import Board, BoardMeta
 
 try:
-    import sb_vision
+    # See if we have vision support
+    import sb_vision  # noqa: F401
     ENABLE_VISION = True
 except ImportError:
     print("WARNING: sb_vision not installed, disabling vision support")
     ENABLE_VISION = False
 
 if ENABLE_VISION:
-    from .camera import *
-
+    # Register the camera 'board' by importing it
+    from .camera import Camera  # noqa: F401
 
 
 class MotorBoard(Board):
