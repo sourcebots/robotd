@@ -326,8 +326,9 @@ class ServoAssembly(Board):
             self._reset_input_buffer()
 
             command_id_part = '@{id} '.format(id=command_id).encode('utf-8')
+            command_args_part = ' '.join(str(x) for x in args).encode('utf-8')
 
-            line = command_id_part + ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
+            line = command_id_part + command_args_part + b'\n'
             self.connection.write(b'\0')
             self.connection.write(line)
             self.connection.flush()
