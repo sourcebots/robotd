@@ -6,8 +6,6 @@ import struct
 import subprocess
 
 import serial
-from sb_vision import Camera as VisionCamera
-from sb_vision import Token, Vision
 
 from . import usb
 from .devices_base import Board, BoardMeta
