@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: python:3-stretch
+    steps:
+      - checkout
+      - run: python3 -m venv venv
+      - run: venv/bin/pip install -r script/linting/requirements.txt
+      - run:
+          command: script/linting/lint
+          environment:
+            FLAKE8: venv/bin/flake8

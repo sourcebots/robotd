@@ -3,33 +3,44 @@
 import collections
 import json
 import multiprocessing
-from pathlib import Path
 import select
 import shutil
 import socket
-import time
 import threading
+import time
+from pathlib import Path
 
-import setproctitle
 import pyudev
+import setproctitle
 
 from .devices import BOARDS
 
 
 class Connection:
+    """
+    A connection to a device.
+
+    This wraps a ``socket.socket`` providing encoding and decoding so that
+    consumers of this class can send and receive JSON-compatible typed data
+    rather than needing to worry about lower-level details.
+    """
 
     def __init__(self, socket):
+        """Wrap the given socket."""
         self.socket = socket
         self.data = b''
 
     def close(self):
+        """Close the connection."""
         self.socket.close()
 
     def send(self, message):
+        """Send the given JSON-compatible message over the connection."""
         line = json.dumps(message).encode('utf-8') + b'\n'
         self.socket.sendall(line)
 
     def receive(self):
+        """Receive a single message from the connection."""
         while b'\n' not in self.data:
             message = self.socket.recv(4096)
             if message == b'':
@@ -89,6 +100,7 @@ class BoardRunner(multiprocessing.Process):
         return server_socket
 
     def broadcast(self, message):
+        """Broadcast a message over all connections."""
         message = dict(message)
         message['broadcast'] = True
 
@@ -246,10 +258,17 @@ class MasterProcess(object):
                         board_type.name(nodes_by_path[new_device]),
                     ),
                 )
-                self._start_board_instance(board_type, new_device, node=nodes_by_path[new_device])
+                self._start_board_instance(
+                    board_type,
+                    new_device,
+                    node=nodes_by_path[new_device],
+                )
 
             for dead_device in missing_paths:
-                print('Disconnected %s: %s' % (board_type.__name__, dead_device))
+                print('Disconnected %s: %s' % (
+                    board_type.__name__,
+                    dead_device,
+                ))
                 runner = self.runners[board_type][dead_device]
                 runner.terminate()
                 runner.join()
@@ -306,6 +325,7 @@ def main(**kwargs):
 
 
 def main_cmdline():
+    """Command line entry point."""
     import argparse
     parser = argparse.ArgumentParser()
 

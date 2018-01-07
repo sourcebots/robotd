@@ -1,12 +1,17 @@
-from pathlib import Path
+"""A camera device."""
 
 import time
+from pathlib import Path
+
+from sb_vision import Camera as VisionCamera
+from sb_vision import Token, Vision
+
 from .devices_base import Board
 
-from sb_vision import Camera as VisionCamera, Vision, Token
 
 class Camera(Board):
-    """Camera"""
+    """A camera."""
+
     lookup_keys = {
         'subsystem': 'video4linux',
     }

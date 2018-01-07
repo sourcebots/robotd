@@ -4,20 +4,23 @@ import os
 import random
 import struct
 import subprocess
+
 import serial
 
+from . import usb
+from .devices_base import Board, BoardMeta
+
 try:
-    import sb_vision
+    # See if we have vision support
+    import sb_vision  # noqa: F401
     ENABLE_VISION = True
 except ImportError:
     print("WARNING: sb_vision not installed, disabling vision support")
     ENABLE_VISION = False
 
 if ENABLE_VISION:
-    from .camera import *
-
-from . import usb
-from .devices_base import Board, BoardMeta
+    # Register the camera 'board' by importing it
+    from .camera import Camera  # noqa: F401
 
 
 class MotorBoard(Board):
@@ -60,8 +63,9 @@ class MotorBoard(Board):
     @classmethod
     def byte_for_speed(cls, value):
         """
-        Get the byte value for the given speed value. Accepts float or a
-        string of 'coast' or 'brake'.
+        Get the byte value for the given speed value.
+
+        Accepts float or a string of 'coast' or 'brake'.
         """
 
         if value == 'coast':
@@ -141,6 +145,8 @@ class GameState(Board):
 
 
 class PowerBoard(Board):
+    """A power board."""
+
     lookup_keys = {
         'subsystem': 'usb',
         'ID_VENDOR': 'Student_Robotics',
@@ -218,8 +224,13 @@ class PowerBoard(Board):
             self._buzz_piezo(cmd['buzz'])
 
 
-
 class ServoAssembly(Board):
+    """
+    A servo assembly.
+
+    Technically this is actually an arduino with a servo shield attached.
+    """
+
     lookup_keys = {
         'subsystem': 'tty',
     }
@@ -273,8 +284,9 @@ class ServoAssembly(Board):
             self._reset_input_buffer()
 
             command_id_part = '@{id} '.format(id=command_id).encode('utf-8')
+            command_args_part = ' '.join(str(x) for x in args).encode('utf-8')
 
-            line = command_id_part + ' '.join(str(x) for x in args).encode('utf-8') + b'\n'
+            line = command_id_part + command_args_part + b'\n'
             self.connection.write(b'\0')
             self.connection.write(line)
             self.connection.flush()
@@ -295,7 +307,9 @@ class ServoAssembly(Board):
 
                 if line.startswith(b'@'):
                     returned_command_id_str, line = line[1:].split(b' ', 1)
-                    returned_command_id = int(returned_command_id_str.decode('utf-8')) & 0xffff
+                    returned_command_id = int(
+                        returned_command_id_str.decode('utf-8'),
+                    ) & 0xffff
 
                     if returned_command_id != command_id:
                         print('Got response for different command, ignoring...')
@@ -308,7 +322,11 @@ class ServoAssembly(Board):
                         if b'unknown command' in line:
                             break  # try again
                         else:
-                            raise RuntimeError(line[2:].decode('utf-8') + '\n' + '\n'.join(comments))
+                            raise RuntimeError(
+                                line[2:].decode('utf-8') +
+                                '\n' +
+                                '\n'.join(comments),
+                            )
                     elif line.startswith(b'# '):
                         comments.append(line[2:].decode('utf-8').strip())
                     elif line.startswith(b'> '):
