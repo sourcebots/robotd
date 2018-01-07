@@ -3,15 +3,15 @@
 import collections
 import json
 import multiprocessing
-from pathlib import Path
 import select
 import shutil
 import socket
-import time
 import threading
+import time
+from pathlib import Path
 
-import setproctitle
 import pyudev
+import setproctitle
 
 from .devices import BOARDS
 

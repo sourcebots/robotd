@@ -2,7 +2,6 @@ import atexit
 
 from .native import _usb
 
-
 context = _usb.ffi.new('struct libusb_context**')
 _usb.lib.libusb_init(context)
 atexit.register(_usb.lib.libusb_exit, context[0])

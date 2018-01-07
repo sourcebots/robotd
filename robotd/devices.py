@@ -1,14 +1,15 @@
 """Actual device classes."""
 
 import os
-from pathlib import Path
 import random
 import struct
 import subprocess
 import time
+from pathlib import Path
 
-from sb_vision import Camera as VisionCamera, Vision, Token
 import serial
+from sb_vision import Camera as VisionCamera
+from sb_vision import Token, Vision
 
 from . import usb
 from .devices_base import Board, BoardMeta
