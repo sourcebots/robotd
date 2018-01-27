@@ -336,7 +336,9 @@ class ServoAssembly(Board):
                         results.append(line[2:].decode('utf-8').strip())
 
                     else:
-                        raise ValueError('wtf is this')
+                        raise ValueError(
+                            "Invalid response from Arduino: {!r}".format(line),
+                        )
 
                 except ValueError:
                     break
