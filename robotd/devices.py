@@ -4,6 +4,7 @@ import os
 import random
 import struct
 import subprocess
+from typing import Any, List, Tuple
 
 import serial
 
@@ -224,6 +225,18 @@ class PowerBoard(Board):
             self._buzz_piezo(cmd['buzz'])
 
 
+class CommandError(RuntimeError):
+    """The servo assembly experienced an error in processing a command."""
+
+    def __init__(self, command: Tuple[Any, ...], error: str, comments: List[str]) -> None:
+        self.command = command
+        self.error = error
+        self.comments = comments
+
+    def __str__(self):
+        return "\n".join([self.error, ''] + self.comments)
+
+
 class ServoAssembly(Board):
     """
     A servo assembly.
@@ -277,7 +290,7 @@ class ServoAssembly(Board):
         self.make_safe()
         print('Finished initialising servo assembly on {}'.format(device))
 
-    def _command(self, *args):
+    def _command(self, *args) -> List[str]:
         command_id = random.randint(1, 65535)
 
         while True:
@@ -293,8 +306,8 @@ class ServoAssembly(Board):
 
             print('Sending to servo assembly:', line)
 
-            comments = []
-            results = []
+            comments = []  # type: List[str]
+            results = []  # type: List[str]
 
             while True:
                 line = self.connection.readline()
@@ -323,10 +336,10 @@ class ServoAssembly(Board):
                         if b'unknown command' in line:
                             break  # try again
                         else:
-                            raise RuntimeError(
-                                line[2:].decode('utf-8') +
-                                '\n' +
-                                '\n'.join(comments),
+                            raise CommandError(
+                                args,
+                                line[2:].decode('utf-8'),
+                                comments,
                             )
 
                     elif line.startswith(b'# '):
