@@ -237,6 +237,17 @@ class CommandError(RuntimeError):
         return "\n".join([self.error, ''] + self.comments)
 
 
+class InvalidResponse(ValueError):
+    """The servo assembly emitted an response which could not be processed."""
+
+    def __init__(self, command: Tuple[Any, ...], response: bytes) -> None:
+        self.command = command
+        self.response = response
+
+    def __str__(self):
+        return "Invalid response from Arduino: {!r}".format(self.response)
+
+
 class ServoAssembly(Board):
     """
     A servo assembly.
@@ -349,9 +360,7 @@ class ServoAssembly(Board):
                         results.append(line[2:].decode('utf-8').strip())
 
                     else:
-                        raise ValueError(
-                            "Invalid response from Arduino: {!r}".format(line),
-                        )
+                        raise InvalidResponse(args, line)
 
                 except ValueError:
                     break
