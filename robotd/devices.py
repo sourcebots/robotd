@@ -318,6 +318,7 @@ class ServoAssembly(Board):
                 try:
                     if line.startswith(b'+ '):
                         return results
+
                     elif line.startswith(b'- '):
                         if b'unknown command' in line:
                             break  # try again
@@ -327,12 +328,16 @@ class ServoAssembly(Board):
                                 '\n' +
                                 '\n'.join(comments),
                             )
+
                     elif line.startswith(b'# '):
                         comments.append(line[2:].decode('utf-8').strip())
+
                     elif line.startswith(b'> '):
                         results.append(line[2:].decode('utf-8').strip())
+
                     else:
                         raise ValueError('wtf is this')
+
                 except ValueError:
                     break
 
