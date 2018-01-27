@@ -301,7 +301,7 @@ class ServoAssembly(Board):
         self.make_safe()
         print('Finished initialising servo assembly on {}'.format(device))
 
-    def _command(self, *args) -> List[str]:
+    def _command(self, *args, generic_command=False) -> List[str]:
         command_id = random.randint(1, 65535)
 
         while True:
@@ -344,7 +344,7 @@ class ServoAssembly(Board):
                         return results
 
                     elif line.startswith(b'- '):
-                        if b'unknown command' in line:
+                        if b'unknown command' in line and not generic_command:
                             break  # try again
                         else:
                             raise CommandError(
@@ -361,6 +361,12 @@ class ServoAssembly(Board):
 
                     else:
                         raise InvalidResponse(args, line)
+
+                except InvalidResponse:
+                    if generic_command:
+                        raise
+                    else:
+                        break
 
                 except ValueError:
                     break
@@ -407,6 +413,19 @@ class ServoAssembly(Board):
 
         self._ultrasound_value = list(sorted(found_values))[1] / 1000.0
 
+    def _generic_command(self, command):
+        try:
+            return {
+                'status': 'ok',
+                'data': self._command(*command),
+            }
+        except (CommandError, InvalidResponse) as e:
+            return {
+                'status': 'error',
+                'type': type(e).__name__,
+                'description': str(e),
+            }
+
     def status(self):
         return {
             'servos': self._servo_status,
@@ -448,6 +467,11 @@ class ServoAssembly(Board):
         read_ultrasound = cmd.get('read-ultrasound', [])
         if len(read_ultrasound) == 2:
             self._read_ultrasound(read_ultrasound[0], read_ultrasound[1])
+
+        # handle direct command access
+        command = cmd.get('command', [])
+        if command:
+            return self._generic_command(command)
 
 
 # Grab the full list of boards from the workings of the metaclass
