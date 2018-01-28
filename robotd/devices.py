@@ -238,7 +238,7 @@ class CommandError(RuntimeError):
 
 
 class InvalidResponse(ValueError):
-    """The servo assembly emitted an response which could not be processed."""
+    """The servo assembly emitted a response which could not be processed."""
 
     def __init__(self, command: Tuple[Any, ...], response: bytes) -> None:
         self.command = command
