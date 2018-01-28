@@ -417,7 +417,7 @@ class ServoAssembly(Board):
         try:
             return {
                 'status': 'ok',
-                'data': self._command(*command),
+                'data': self._command(*command, generic_command=True),
             }
         except (CommandError, InvalidResponse) as e:
             return {
