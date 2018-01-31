@@ -115,6 +115,11 @@ class BoardRunner(multiprocessing.Process):
         print('Sending board status:', board_status)
         connection.send(board_status)
 
+    def _send_command_response(self, connection, response):
+        message = {'response': response}
+        print('Sending command response:', message)
+        connection.send(message)
+
     def run(self):
         """
         Control this board.
@@ -169,7 +174,9 @@ class BoardRunner(multiprocessing.Process):
                     continue
 
                 if command != {}:
-                    self.board.command(command)
+                    response = self.board.command(command)
+                    if response is not None:
+                        self._send_command_response(connection, response)
 
                 self._send_board_status(connection)
 

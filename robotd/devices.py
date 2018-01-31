@@ -4,6 +4,7 @@ import os
 import random
 import struct
 import subprocess
+from typing import Any, List, Tuple
 
 import serial
 
@@ -224,6 +225,29 @@ class PowerBoard(Board):
             self._buzz_piezo(cmd['buzz'])
 
 
+class CommandError(RuntimeError):
+    """The servo assembly experienced an error in processing a command."""
+
+    def __init__(self, command: Tuple[Any, ...], error: str, comments: List[str]) -> None:
+        self.command = command
+        self.error = error
+        self.comments = comments
+
+    def __str__(self):
+        return "\n".join([self.error, ''] + self.comments)
+
+
+class InvalidResponse(ValueError):
+    """The servo assembly emitted a response which could not be processed."""
+
+    def __init__(self, command: Tuple[Any, ...], response: bytes) -> None:
+        self.command = command
+        self.response = response
+
+    def __str__(self):
+        return "Invalid response from Arduino: {!r}".format(self.response)
+
+
 class ServoAssembly(Board):
     """
     A servo assembly.
@@ -277,7 +301,7 @@ class ServoAssembly(Board):
         self.make_safe()
         print('Finished initialising servo assembly on {}'.format(device))
 
-    def _command(self, *args):
+    def _command(self, *args, generic_command=False) -> List[str]:
         command_id = random.randint(1, 65535)
 
         while True:
@@ -293,8 +317,8 @@ class ServoAssembly(Board):
 
             print('Sending to servo assembly:', line)
 
-            comments = []
-            results = []
+            comments = []  # type: List[str]
+            results = []  # type: List[str]
 
             while True:
                 line = self.connection.readline()
@@ -320,13 +344,13 @@ class ServoAssembly(Board):
                         return results
 
                     elif line.startswith(b'- '):
-                        if b'unknown command' in line:
+                        if b'unknown command' in line and not generic_command:
                             break  # try again
                         else:
-                            raise RuntimeError(
-                                line[2:].decode('utf-8') +
-                                '\n' +
-                                '\n'.join(comments),
+                            raise CommandError(
+                                args,
+                                line[2:].decode('utf-8'),
+                                comments,
                             )
 
                     elif line.startswith(b'# '):
@@ -336,9 +360,13 @@ class ServoAssembly(Board):
                         results.append(line[2:].decode('utf-8').strip())
 
                     else:
-                        raise ValueError(
-                            "Invalid response from Arduino: {!r}".format(line),
-                        )
+                        raise InvalidResponse(args, line)
+
+                except InvalidResponse:
+                    if generic_command:
+                        raise
+                    else:
+                        break
 
                 except ValueError:
                     break
@@ -385,6 +413,19 @@ class ServoAssembly(Board):
 
         self._ultrasound_value = list(sorted(found_values))[1] / 1000.0
 
+    def _generic_command(self, command):
+        try:
+            return {
+                'status': 'ok',
+                'data': self._command(*command, generic_command=True),
+            }
+        except (CommandError, InvalidResponse) as e:
+            return {
+                'status': 'error',
+                'type': type(e).__name__,
+                'description': str(e),
+            }
+
     def status(self):
         return {
             'servos': self._servo_status,
@@ -426,6 +467,11 @@ class ServoAssembly(Board):
         read_ultrasound = cmd.get('read-ultrasound', [])
         if len(read_ultrasound) == 2:
             self._read_ultrasound(read_ultrasound[0], read_ultrasound[1])
+
+        # handle direct command access
+        command = cmd.get('command', [])
+        if command:
+            return self._generic_command(command)
 
 
 # Grab the full list of boards from the workings of the metaclass
