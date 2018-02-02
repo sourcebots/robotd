@@ -137,56 +137,62 @@ class BoardRunner(multiprocessing.Process):
         self.board.broadcast = self.broadcast
         self.board.start()
 
-        while True:
-            connection_sockets = list(self.connections.keys())
+        try:
+            while True:
+                self._process_connections(server_socket)
+        finally:
+            self.board.make_safe()
 
-            # Wait until one of the sockets is ready to read.
-            readable, _, errorable = select.select(
-                # connections that want to read
-                [server_socket] + connection_sockets,
-                # connections that want to write
-                [],
-                # connections that want to error
-                connection_sockets,
-            )
+    def _process_connections(self, server_socket):
+        connection_sockets = list(self.connections.keys())
 
-            # New connections
-            if server_socket in readable:
-                new_socket, _ = server_socket.accept()
-                new_connection = Connection(new_socket)
-                readable.append(new_socket)
-                self.connections[new_socket] = new_connection
-                print('New connection at:', self.socket_path)
-                self._send_board_status(new_connection)
+        # Wait until one of the sockets is ready to read.
+        readable, _, errorable = select.select(
+            # connections that want to read
+            [server_socket] + connection_sockets,
+            # connections that want to write
+            [],
+            # connections that want to error
+            connection_sockets,
+        )
 
-            dead_sockets = []
+        # New connections
+        if server_socket in readable:
+            new_socket, _ = server_socket.accept()
+            new_connection = Connection(new_socket)
+            readable.append(new_socket)
+            self.connections[new_socket] = new_connection
+            print('New connection at:', self.socket_path)
+            self._send_board_status(new_connection)
 
-            for sock in readable:
-                try:
-                    connection = self.connections[sock]
-                except KeyError:
-                    continue
+        dead_sockets = []
 
-                command = connection.receive()
+        for sock in readable:
+            try:
+                connection = self.connections[sock]
+            except KeyError:
+                continue
 
-                if command is None:
-                    dead_sockets.append(sock)
-                    continue
+            command = connection.receive()
 
-                if command != {}:
-                    response = self.board.command(command)
-                    if response is not None:
-                        self._send_command_response(connection, response)
+            if command is None:
+                dead_sockets.append(sock)
+                continue
 
-                self._send_board_status(connection)
+            if command != {}:
+                response = self.board.command(command)
+                if response is not None:
+                    self._send_command_response(connection, response)
 
-            dead_sockets.extend(errorable)
+            self._send_board_status(connection)
 
-            self._close_dead_sockets(dead_sockets)
+        dead_sockets.extend(errorable)
 
-            if dead_sockets and not self.connections:
-                print('Last connection closed')
-                self.board.make_safe()
+        self._close_dead_sockets(dead_sockets)
+
+        if dead_sockets and not self.connections:
+            print('Last connection closed')
+            self.board.make_safe()
 
     def _close_dead_sockets(self, dead_sockets):
         for sock in dead_sockets:
