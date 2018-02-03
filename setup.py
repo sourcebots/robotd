@@ -20,6 +20,7 @@ setup(
         "cffi>=1.4.0",
         'pyserial',
         'pyudev',
+        'sb-vision',
         'setproctitle',
     ],
     entry_points={
