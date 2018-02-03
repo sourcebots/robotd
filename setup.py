@@ -17,9 +17,9 @@ setup(
         'robotd/native/libusb_build.py:ffibuilder',
     ],
     install_requires=[
-        'pyudev',
-        'pyserial',
         "cffi>=1.4.0",
+        'pyserial',
+        'pyudev',
         'setproctitle',
     ],
     entry_points={
