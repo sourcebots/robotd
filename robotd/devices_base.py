@@ -12,9 +12,9 @@ class BoardMeta(type):
 
     BOARDS = []
 
-    def __new__(cls, name, bases, dict):
+    def __new__(cls, name, bases, attrs):
         """Instantiate subclass."""
-        cls = type.__new__(cls, name, bases, dict)
+        cls = type.__new__(cls, name, bases, attrs)
         if (
             (hasattr(cls, 'lookup_keys') or cls.create_on_startup) and
             cls.enabled
