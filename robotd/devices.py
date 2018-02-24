@@ -306,7 +306,7 @@ class ServoAssembly(Board):
         self._ultrasound_value = None
 
         self.make_safe()
-        LOGGER.debug('Finished initialising servo assembly on {}'.format(device))
+        LOGGER.debug('Finished initialising servo assembly on %r', device)
 
     def _command(self, *args, generic_command=False) -> List[str]:
         command_id = random.randint(1, 65535)
