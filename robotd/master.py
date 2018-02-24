@@ -93,7 +93,7 @@ class BoardRunner(multiprocessing.Process):
 
         self.socket_path.chmod(0o777)
 
-        LOGGER.info('Listening on:', self.socket_path)
+        LOGGER.info('Listening on: %s', self.socket_path)
 
         setproctitle.setproctitle('robotd {}: {}'.format(
             type(self.board).board_type_id,
@@ -115,12 +115,12 @@ class BoardRunner(multiprocessing.Process):
 
     def _send_board_status(self, connection):
         board_status = self.board.status()
-        LOGGER.debug('Sending board status:', board_status)
+        LOGGER.debug('Sending board status: %s', board_status)
         connection.send(board_status)
 
     def _send_command_response(self, connection, response):
         message = {'response': response}
-        LOGGER.debug('Sending command response:', message)
+        LOGGER.debug('Sending command response: %s', message)
         connection.send(message)
 
     def run(self):
@@ -165,7 +165,7 @@ class BoardRunner(multiprocessing.Process):
             new_connection = Connection(new_socket)
             readable.append(new_socket)
             self.connections[new_socket] = new_connection
-            LOGGER.info('New connection at:', self.socket_path)
+            LOGGER.info('New connection at: %s', self.socket_path)
             self._send_board_status(new_connection)
 
         dead_sockets = []
