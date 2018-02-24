@@ -1,9 +1,11 @@
 """Actual device classes."""
 
+import logging
 import os
 import random
 import struct
 import subprocess
+import warnings
 from typing import Any, List, Tuple
 
 import serial
@@ -16,12 +18,17 @@ try:
     import sb_vision  # noqa: F401
     ENABLE_VISION = True
 except ImportError:
-    print("WARNING: sb_vision not installed, disabling vision support")
+    warnings.warn(
+        "sb_vision not installed, disabling vision support",
+        category=ImportWarning,
+    )
     ENABLE_VISION = False
 
 if ENABLE_VISION:
     # Register the camera 'board' by importing it
     from .camera import Camera  # noqa: F401
+
+LOGGER = logging.getLogger(__name__)
 
 
 class MotorBoard(Board):
@@ -299,7 +306,7 @@ class ServoAssembly(Board):
         self._ultrasound_value = None
 
         self.make_safe()
-        print('Finished initialising servo assembly on {}'.format(device))
+        LOGGER.debug('Finished initialising servo assembly on %r', device)
 
     def _command(self, *args, generic_command=False) -> List[str]:
         command_id = random.randint(1, 65535)
@@ -315,7 +322,7 @@ class ServoAssembly(Board):
             self.connection.write(line)
             self.connection.flush()
 
-            print('Sending to servo assembly:', line)
+            LOGGER.debug('Sending to servo assembly: %r', line)
 
             comments = []  # type: List[str]
             results = []  # type: List[str]
@@ -323,7 +330,7 @@ class ServoAssembly(Board):
             while True:
                 line = self.connection.readline()
 
-                print('Got back from servo:', line)
+                LOGGER.debug('Got back from servo: %r', line)
 
                 if not line:
                     # Leave the loop and reissue the command
@@ -336,7 +343,7 @@ class ServoAssembly(Board):
                     ) & 0xffff
 
                     if returned_command_id != command_id:
-                        print('Got response for different command, ignoring...')
+                        LOGGER.debug('Got response for different command, ignoring...')
                         continue
 
                 try:

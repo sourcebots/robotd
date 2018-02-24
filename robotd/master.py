@@ -2,6 +2,7 @@
 
 import collections
 import json
+import logging
 import multiprocessing
 import select
 import shutil
@@ -14,6 +15,8 @@ import pyudev
 import setproctitle
 
 from .devices import BOARDS
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Connection:
@@ -73,7 +76,7 @@ class BoardRunner(multiprocessing.Process):
             self.socket_path.parent.mkdir(parents=True)
         except FileExistsError:
             if self.socket_path.exists():
-                print('Warning: removing old {}'.format(self.socket_path))
+                LOGGER.warning('removing old %r', self.socket_path)
                 self._delete_socket_path()
 
     def _delete_socket_path(self):
@@ -90,7 +93,7 @@ class BoardRunner(multiprocessing.Process):
 
         self.socket_path.chmod(0o777)
 
-        print('Listening on:', self.socket_path)
+        LOGGER.info('Listening on: %s', self.socket_path)
 
         setproctitle.setproctitle('robotd {}: {}'.format(
             type(self.board).board_type_id,
@@ -112,12 +115,12 @@ class BoardRunner(multiprocessing.Process):
 
     def _send_board_status(self, connection):
         board_status = self.board.status()
-        print('Sending board status:', board_status)
+        LOGGER.debug('Sending board status: %s', board_status)
         connection.send(board_status)
 
     def _send_command_response(self, connection, response):
         message = {'response': response}
-        print('Sending command response:', message)
+        LOGGER.debug('Sending command response: %s', message)
         connection.send(message)
 
     def run(self):
@@ -162,7 +165,7 @@ class BoardRunner(multiprocessing.Process):
             new_connection = Connection(new_socket)
             readable.append(new_socket)
             self.connections[new_socket] = new_connection
-            print('New connection at:', self.socket_path)
+            LOGGER.info('New connection at: %s', self.socket_path)
             self._send_board_status(new_connection)
 
         dead_sockets = []
@@ -191,7 +194,7 @@ class BoardRunner(multiprocessing.Process):
         self._close_dead_sockets(dead_sockets)
 
         if dead_sockets and not self.connections:
-            print('Last connection closed')
+            LOGGER.info('Last connection closed')
             self.board.make_safe()
 
     def _close_dead_sockets(self, dead_sockets):
@@ -264,12 +267,11 @@ class MasterProcess(object):
             new_paths = actual_paths - expected_paths
 
             for new_device in new_paths:
-                print(
-                    'Detected new %s: %s (%s)' % (
-                        board_type.__name__,
-                        new_device,
-                        board_type.name(nodes_by_path[new_device]),
-                    ),
+                LOGGER.info(
+                    'Detected new %s: %s (%s)',
+                    board_type.__name__,
+                    new_device,
+                    board_type.name(nodes_by_path[new_device]),
                 )
                 self._start_board_instance(
                     board_type,
@@ -278,10 +280,7 @@ class MasterProcess(object):
                 )
 
             for dead_device in missing_paths:
-                print('Disconnected %s: %s' % (
-                    board_type.__name__,
-                    dead_device,
-                ))
+                LOGGER.info('Disconnected %s: %s', board_type.__name__, dead_device)
                 runner = self.runners[board_type][dead_device]
                 runner.terminate()
                 runner.join()
@@ -314,10 +313,7 @@ class MasterProcess(object):
                 for board_type, runners in list(self.runners.items()):
                     for device_id, runner_process in list(runners.items()):
                         if not runner_process.is_alive():
-                            print('Dead worker: {}({})'.format(
-                                board_type,
-                                device_id,
-                            ))
+                            LOGGER.info('Dead worker: %s(%s)', board_type, device_id)
                             # This worker has died and needs to be reaped
                             del self.runners[board_type][device_id]
 
