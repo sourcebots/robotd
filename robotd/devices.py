@@ -35,13 +35,16 @@ class MotorBoard(Board):
     """Student Robotics-era Motor board."""
 
     lookup_keys = {
-        'ID_VENDOR': 'Student_Robotics',
+        'ID_VENDOR_ID': '0403',
         'subsystem': 'tty',
     }
 
     @classmethod
     def included(cls, node):
-        return node['ID_MODEL'] == 'MCV4B'
+        # Also check the human-readable string as well as the numeric ID,
+        # since 0403:6001 is too general (it only identifies the device as an
+        # FTDI USB-serial bridge rather than as a motor board).
+        return node['ID_MODEL_ID'] == '6001' and node['ID_MODEL'] == 'MCV4B'
 
     @classmethod
     def name(cls, node):
@@ -157,12 +160,12 @@ class PowerBoard(Board):
 
     lookup_keys = {
         'subsystem': 'usb',
-        'ID_VENDOR': 'Student_Robotics',
+        'ID_VENDOR_ID': '1bda',
     }
 
     @classmethod
     def included(cls, node):
-        return node['ID_MODEL'] == 'Power_board_v4'
+        return node['ID_MODEL_ID'] == '0010'
 
     @classmethod
     def name(cls, node):
