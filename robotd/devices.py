@@ -3,6 +3,7 @@
 import glob
 import logging
 import os
+import os.path
 import random
 import re
 import struct
@@ -142,6 +143,7 @@ class GameState(Board):
 
     FILE_GLOB = '/media/usb?/zone-?'
     FILE_REGEX = re.compile('zone-(\d)')
+    IGNORE_DIRS_CONTAINING_FILE_NAMES = ('main.py',)
 
     # define the name od the board
     board_type_id = 'game'
@@ -154,11 +156,26 @@ class GameState(Board):
     def name(cls, node):
         return 'state'
 
+    def as_siblings(self, file_path: str, file_names: List[str]) -> List[str]:
+        parent = os.path.dirname(file_path)
+        return [os.path.join(parent, x) for x in file_names]
+
+    def any_exist(self, file_paths: List[str]) -> bool:
+        return any(os.path.exists(x) for x in file_paths)
+
     def find_zone(self):
         for candidate_path in glob.iglob(self.FILE_GLOB):
             match = self.FILE_REGEX.search(candidate_path)
-            if match is not None:
-                return int(match.group(1))
+            if match is None:
+                continue
+
+            if self.any_exist(self.as_siblings(
+                candidate_path,
+                self.IGNORE_DIRS_CONTAINING_FILE_NAMES,
+            )):
+                continue
+
+            return int(match.group(1))
 
         raise NoZoneFound()
 
