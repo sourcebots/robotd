@@ -9,9 +9,20 @@ jobs:
     steps:
       - checkout
       - run: python3 -m venv venv
-      - run: venv/bin/pip install git+https://github.com/sourcebots/sb-vision
-      - run: venv/bin/pip install -e .
+
+      - run:
+          name: install sb-vision
+          command: |
+            apt-get update -y
+            apt-get install -y libcv-dev libopencv-photo-dev libopencv-contrib-dev libusb-1.0.0-dev
+            venv/bin/pip install git+https://github.com/sourcebots/sb-vision
+
+      - run:
+          name: install ourselves
+          command: venv/bin/pip install -e .
+
       - run: venv/bin/python3 -m unittest
+
       - run: venv/bin/pip install -r script/linting/requirements.txt
       - run:
           command: script/linting/lint
