@@ -133,6 +133,7 @@ class BrainTemperatureSensor(Board):
 
 class NoZoneFound(ValueError):
     """Indicates that a search for a zone file failed."""
+
     pass
 
 
