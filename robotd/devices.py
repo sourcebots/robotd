@@ -146,7 +146,7 @@ class GameState(Board):
     FILE_REGEX = re.compile('zone-(\d)')
     IGNORE_DIRS_CONTAINING_FILE_NAMES = ('main.py',)
 
-    # define the name od the board
+    # define the name of the board
     board_type_id = 'game'
     create_on_startup = True
 
