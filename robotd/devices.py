@@ -147,6 +147,9 @@ class GameState(Board):
     board_type_id = 'game'
     create_on_startup = True
 
+    def __init__(self):
+        super().__init__({})
+
     @classmethod
     def name(cls, node):
         return 'state'

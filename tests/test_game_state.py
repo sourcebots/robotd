@@ -8,7 +8,7 @@ from robotd.devices import GameState
 
 class GameStateBoardTests(unittest.TestCase):
     def assertStatus(self, expected):
-        board = GameState({})
+        board = GameState()
         status = board.status()
         self.assertEqual(
             expected,
