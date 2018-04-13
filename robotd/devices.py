@@ -155,7 +155,7 @@ class GameState(Board):
         return 'state'
 
     def find_zone(self):
-        for candidate_path in glob.glob(self.FILE_GLOB):
+        for candidate_path in glob.iglob(self.FILE_GLOB):
             match = self.FILE_REGEX.search(candidate_path)
             if match is not None:
                 return int(match.group(1))
