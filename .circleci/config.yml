@@ -9,6 +9,7 @@ jobs:
     steps:
       - checkout
       - run: python3 -m venv venv
+      - run: venv/bin/pip install git+https://github.com/sourcebots/sb-vision
       - run: venv/bin/pip install -e .
       - run: venv/bin/python3 -m unittest
       - run: venv/bin/pip install -r script/linting/requirements.txt
