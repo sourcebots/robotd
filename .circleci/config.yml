@@ -8,6 +8,8 @@ jobs:
       - image: python:3.5.4
     steps:
       - checkout
+      - run:
+          command: python3 -m unittest
       - run: python3 -m venv venv
       - run: venv/bin/pip install -r script/linting/requirements.txt
       - run:

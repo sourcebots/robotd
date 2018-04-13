@@ -1,8 +1,10 @@
 """Actual device classes."""
 
+import glob
 import logging
 import os
 import random
+import re
 import struct
 import subprocess
 import warnings
@@ -128,28 +130,43 @@ class BrainTemperatureSensor(Board):
         return {'temperature': temp_milli_degrees / 1000}
 
 
+class NoZoneFound(ValueError):
+    """Indicates that a search for a zone file failed."""
+    pass
+
+
 class GameState(Board):
     """
     State storage for the game, keeps a store of everything it has received.
     """
 
+    FILE_GLOB = '/media/usb?/zone-?'
+    FILE_REGEX = re.compile('zone-(\d)')
+
     # define the name od the board
     board_type_id = 'game'
     create_on_startup = True
-
-    def __init__(self):
-        super().__init__({})
-        self.state = {'zone': 0, 'mode': 'development'}
 
     @classmethod
     def name(cls, node):
         return 'state'
 
-    def command(self, cmd):
-        self.state.update(cmd)
+    def find_zone(self):
+        for candidate_path in glob.glob(self.FILE_GLOB):
+            match = self.FILE_REGEX.search(candidate_path)
+            if match is not None:
+                return int(match.group(1))
+
+        raise NoZoneFound()
 
     def status(self):
-        return self.state
+        try:
+            return {
+                'zone': self.find_zone(),
+                'mode': 'competition',
+            }
+        except NoZoneFound:
+            return {'zone': 0, 'mode': 'development'}
 
 
 class PowerBoard(Board):
