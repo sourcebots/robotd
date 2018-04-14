@@ -143,7 +143,7 @@ class GameState(Board):
     """
 
     FILE_GLOB = '/media/usb?/zone-?'
-    FILE_REGEX = re.compile('zone-(\d)')
+    ZONE_REGEX = re.compile('zone-(\d)')
     IGNORE_DIRS_CONTAINING_FILE_NAMES = ('main.py',)
 
     # define the name of the board
@@ -166,7 +166,7 @@ class GameState(Board):
 
     def find_zone(self):
         for candidate_path in glob.iglob(self.FILE_GLOB):
-            match = self.FILE_REGEX.search(candidate_path)
+            match = self.ZONE_REGEX.search(candidate_path)
             if match is None:
                 continue
 
