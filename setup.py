@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='robotd',
-    version='2018.2.0',
+    version='2018.3.0',
     description="Daemon for vision code for Source Bots",
     author="SourceBots",
     author_email='',
