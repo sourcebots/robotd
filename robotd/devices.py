@@ -450,7 +450,8 @@ class ServoAssembly(Board):
         results = self._command('A')
         for result in results:
             name, value = result.split(' ')
-            self._analogue_values.update({name: value})
+            voltage = int(value) * 5 / 1024
+            self._analogue_values.update({name: voltage})
 
     def _read_ultrasound(self, trigger_pin, echo_pin):
         found_values = []
