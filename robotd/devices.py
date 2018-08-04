@@ -308,7 +308,7 @@ class ServoAssembly(Board):
     }
 
     NUM_SERVOS = 16
-    GPIO_IDS = range(2, 13)
+    GPIO_IDS = range(2, 14)
 
     INPUT = 'Z'
 
