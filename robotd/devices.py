@@ -331,7 +331,7 @@ class ServoAssembly(Board):
     def start(self):
         device = self.node['DEVNAME']
 
-        self.connection = serial.Serial(device, baudrate=9600, timeout=0.2)
+        self.connection = serial.Serial(device, baudrate=115200, timeout=0.2)
 
         if hasattr(self.connection, 'reset_input_buffer'):
             self._reset_input_buffer = self.connection.reset_input_buffer
