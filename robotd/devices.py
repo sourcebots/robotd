@@ -338,7 +338,7 @@ class ServoAssembly(Board):
         else:
             self._reset_input_buffer = self.connection.flushInput
 
-        (self.fw_version,) = self._command('version')
+        (self.fw_version,) = self._command('V')
         self.fw_version = self.fw_version.strip()
         self._servo_status = {}
         self._pin_status = {}
