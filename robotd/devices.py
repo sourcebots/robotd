@@ -300,7 +300,7 @@ class ServoAssembly(Board):
     """
     A servo assembly.
 
-    Technically this is actually an arduino with a servo shield attached.
+    Technically this is actually an Arduino with a servo shield attached.
     """
 
     lookup_keys = {
@@ -308,9 +308,9 @@ class ServoAssembly(Board):
     }
 
     NUM_SERVOS = 16
-    GPIO_IDS = range(2, 13)
+    GPIO_IDS = range(2, 14)
 
-    INPUT = 'hi-z'
+    INPUT = 'Z'
 
     @classmethod
     def included(cls, node):
@@ -338,7 +338,7 @@ class ServoAssembly(Board):
         else:
             self._reset_input_buffer = self.connection.flushInput
 
-        (self.fw_version,) = self._command('version')
+        (self.fw_version,) = self._command('V')
         self.fw_version = self.fw_version.strip()
         self._servo_status = {}
         self._pin_status = {}
@@ -435,28 +435,29 @@ class ServoAssembly(Board):
         else:
             return
 
-        self._command('servo', servo, level)
+        self._command('S', servo, level)
         self._servo_status[str(servo)] = level
 
     def _write_pin(self, pin, setting):
         self._pin_status[pin] = setting
-        return self._command('gpio-write', pin, setting)
+        return self._command('W', pin, setting)
 
     def _read_pin(self, pin):
-        result = self._command('gpio-read', pin)[0]
+        result = self._command('R', pin)[0]
         self._pin_values.update({pin: result})
 
     def _read_analogue(self):
-        results = self._command('analogue-read')
+        results = self._command('A')
         for result in results:
             name, value = result.split(' ')
-            self._analogue_values.update({name: value})
+            voltage = int(value) * 5 / 1024
+            self._analogue_values.update({name: voltage})
 
     def _read_ultrasound(self, trigger_pin, echo_pin):
         found_values = []
 
         for i in range(3):
-            result = self._command('ultrasound-read', trigger_pin, echo_pin)[0]
+            result = self._command('U', trigger_pin, echo_pin)[0]
             found_values.append(float(result))
 
         self._ultrasound_value = list(sorted(found_values))[1] / 1000.0
