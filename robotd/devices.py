@@ -247,14 +247,14 @@ class PowerBoard(Board):
             '--pid={}'.format(os.getppid()),
         ])
 
-    def _set_power_output(self, output: PowerOutput, level):
+    def _set_power_output(self, output: PowerOutput, level: bool) -> None:
         self.device.control_write(
             64,
-            level,
+            int(level),
             output.value,
         )
 
-    def _set_power_outputs(self, level):
+    def _set_power_outputs(self, level: bool) -> None:
         for output in PowerOutput:
             self._set_power_output(output, level)
 
@@ -279,7 +279,7 @@ class PowerBoard(Board):
     def command(self, cmd):
         if 'power' in cmd:
             power = bool(cmd['power'])
-            self._set_power_outputs(1 if power else 0)
+            self._set_power_outputs(power)
         elif 'start-led' in cmd:
             value = bool(cmd['start-led'])
             self._set_start_led(1 if value else 0)
