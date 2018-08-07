@@ -1,5 +1,6 @@
 """Actual device classes."""
 
+import enum
 import glob
 import logging
 import os
@@ -193,6 +194,16 @@ class GameState(Board):
             return {'zone': 0, 'mode': 'development'}
 
 
+class PowerOutput(enum.Enum):
+    """An enumeration of the outputs on the power board."""
+    HIGH_POWER_1 = 0
+    HIGH_POWER_2 = 1
+    LOW_POWER_1 = 2
+    LOW_POWER_2 = 3
+    LOW_POWER_3 = 4
+    LOW_POWER_4 = 5
+
+
 class PowerBoard(Board):
     """A power board."""
 
@@ -236,13 +247,16 @@ class PowerBoard(Board):
             '--pid={}'.format(os.getppid()),
         ])
 
+    def _set_power_output(self, output: PowerOutput, level):
+        self.device.control_write(
+            64,
+            level,
+            output.value,
+        )
+
     def _set_power_outputs(self, level):
-        for command in (0, 1, 2, 3, 4, 5):
-            self.device.control_write(
-                64,
-                level,
-                command,
-            )
+        for output in PowerOutput:
+            self._set_power_output(output, level)
 
     def _set_start_led(self, value):
         self.device.control_write(64, value, 6)
