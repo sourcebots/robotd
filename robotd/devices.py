@@ -277,7 +277,11 @@ class PowerBoard(Board):
         return {'start-button': self.start_button_status}
 
     def command(self, cmd):
-        if 'power' in cmd:
+        if 'power-output' in cmd and 'power-level' in cmd:
+            output = PowerOutput(cmd['power-output'])
+            power = bool(cmd['power-level'])
+            self._set_power_output(output, power)
+        elif 'power' in cmd:
             power = bool(cmd['power'])
             self._set_power_outputs(power)
         elif 'start-led' in cmd:
