@@ -1,5 +1,6 @@
 """Actual device classes."""
 
+import enum
 import glob
 import logging
 import os
@@ -193,6 +194,17 @@ class GameState(Board):
             return {'zone': 0, 'mode': 'development'}
 
 
+class PowerOutput(enum.Enum):
+    """An enumeration of the outputs on the power board."""
+
+    HIGH_POWER_0 = 0
+    HIGH_POWER_1 = 1
+    LOW_POWER_0 = 2
+    LOW_POWER_1 = 3
+    LOW_POWER_2 = 4
+    LOW_POWER_3 = 5
+
+
 class PowerBoard(Board):
     """A power board."""
 
@@ -236,13 +248,16 @@ class PowerBoard(Board):
             '--pid={}'.format(os.getppid()),
         ])
 
-    def _set_power_outputs(self, level):
-        for command in (0, 1, 2, 3, 4, 5):
-            self.device.control_write(
-                64,
-                level,
-                command,
-            )
+    def _set_power_output(self, output: PowerOutput, level: bool) -> None:
+        self.device.control_write(
+            64,
+            int(level),
+            output.value,
+        )
+
+    def _set_power_outputs(self, level: bool) -> None:
+        for output in PowerOutput:
+            self._set_power_output(output, level)
 
     def _set_start_led(self, value):
         self.device.control_write(64, value, 6)
@@ -263,9 +278,13 @@ class PowerBoard(Board):
         return {'start-button': self.start_button_status}
 
     def command(self, cmd):
-        if 'power' in cmd:
+        if 'power-output' in cmd and 'power-level' in cmd:
+            output = PowerOutput(cmd['power-output'])
+            power = bool(cmd['power-level'])
+            self._set_power_output(output, power)
+        elif 'power' in cmd:
             power = bool(cmd['power'])
-            self._set_power_outputs(1 if power else 0)
+            self._set_power_outputs(power)
         elif 'start-led' in cmd:
             value = bool(cmd['start-led'])
             self._set_start_led(1 if value else 0)
