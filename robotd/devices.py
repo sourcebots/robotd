@@ -197,12 +197,12 @@ class GameState(Board):
 class PowerOutput(enum.Enum):
     """An enumeration of the outputs on the power board."""
 
-    HIGH_POWER_1 = 0
-    HIGH_POWER_2 = 1
-    LOW_POWER_1 = 2
-    LOW_POWER_2 = 3
-    LOW_POWER_3 = 4
-    LOW_POWER_4 = 5
+    HIGH_POWER_0 = 0
+    HIGH_POWER_1 = 1
+    LOW_POWER_0 = 2
+    LOW_POWER_1 = 3
+    LOW_POWER_2 = 4
+    LOW_POWER_3 = 5
 
 
 class PowerBoard(Board):
